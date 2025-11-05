@@ -5,7 +5,7 @@ import React from "react";
 export default function RootLayout() {
   return (
     <GluestackUIProvider mode="dark">
-      <Slot />
-    </GluestackUIProvider>  
+      <Slot initialRouteName="(auth)/" />
+    </GluestackUIProvider>
   );
 }
