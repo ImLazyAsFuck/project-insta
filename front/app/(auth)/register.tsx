@@ -1,27 +1,52 @@
-import { FontAwesome } from '@expo/vector-icons'; // nếu dùng Expo
+import { FontAwesome } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState('');
+  const [fullname, setFullname] = useState('');
   const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+
+  const handleRegister = () => {
+    console.log({ username, fullname, password, phoneNumber });
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>Instagram</Text>
+
       <TextInput
         style={styles.input}
-        placeholder="Phone number, username, or email"
+        placeholder="Username"
         placeholderTextColor="#999"
         value={username}
         onChangeText={setUsername}
       />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Full name"
+        placeholderTextColor="#999"
+        value={fullname}
+        onChangeText={setFullname}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Phone number"
+        placeholderTextColor="#999"
+        keyboardType="phone-pad"
+        value={phoneNumber}
+        onChangeText={setPhoneNumber}
+      />
+
       <TextInput
         style={styles.input}
         placeholder="Password"
@@ -30,17 +55,14 @@ export default function RegisterScreen() {
         value={password}
         onChangeText={setPassword}
       />
-      <TouchableOpacity style={styles.forgotContainer}>
-        <Text style={styles.forgotText}>Forgot password?</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity style={styles.loginButton}>
-        <Text style={styles.loginText}>Log in</Text>
+
+      <TouchableOpacity style={styles.signUpButton} onPress={handleRegister}>
+        <Text style={styles.signUpText}>Sign up</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.facebookButton}>
         <FontAwesome name="facebook-square" size={20} color="#3797EF" />
-        <Text style={styles.facebookText}> Log in with Facebook</Text>
+        <Text style={styles.facebookText}> Sign up with Facebook</Text>
       </TouchableOpacity>
 
       <View style={styles.dividerContainer}>
@@ -50,8 +72,8 @@ export default function RegisterScreen() {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Don’t have an account? </Text>
-        <Text style={styles.signUp}>Sign up.</Text>
+        <Text style={styles.footerText}>Already have an account? </Text>
+        <Text style={styles.loginLink}>Log in.</Text>
       </View>
 
       <Text style={styles.bottomText}>Instagram or Facebook</Text>
@@ -82,15 +104,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 10,
   },
-  forgotContainer: {
-    alignSelf: 'flex-end',
-    marginBottom: 15,
-  },
-  forgotText: {
-    color: '#3797EF',
-    fontSize: 13,
-  },
-  loginButton: {
+  signUpButton: {
     backgroundColor: '#3797EF',
     paddingVertical: 12,
     borderRadius: 8,
@@ -98,7 +112,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 15,
   },
-  loginText: {
+  signUpText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
@@ -136,7 +150,7 @@ const styles = StyleSheet.create({
   footerText: {
     color: '#999',
   },
-  signUp: {
+  loginLink: {
     color: '#000',
     fontWeight: '600',
   },

@@ -21,7 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/auths")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "API quản lý xác thực và phân quyền")
 public class AuthController {
@@ -67,44 +67,5 @@ public class AuthController {
     public ResponseEntity<APIResponse<Void>> logout() {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(authService.logout());
     }
-
-    @PutMapping("/change-password")
-    @SecurityRequirement(name = "Bearer Authentication")
-    @Operation(summary = "Đổi mật khẩu", description = "Đổi mật khẩu mới cho tài khoản đang đăng nhập. Yêu cầu JWT token.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Đổi mật khẩu thành công")
-    })
-    public ResponseEntity<APIResponse<Void>> changePassword(
-            @RequestParam String oldPassword,
-            @RequestParam String password,
-            @RequestParam String confirmPassword
-    ) {
-        return ResponseEntity.ok(authService.changePassword(oldPassword, password, confirmPassword));
-    }
-
-    @GetMapping("/profile")
-    @SecurityRequirement(name = "Bearer Authentication")
-    @Operation(summary = "Xem thông tin cá nhân", description = "Lấy thông tin hồ sơ người dùng hiện tại từ JWT token")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lấy thông tin thành công",
-                    content = @Content(schema = @Schema(implementation = ProfileResponse.class)))
-    })
-    public ResponseEntity<APIResponse<ProfileResponse>> getProfile() {
-        return ResponseEntity.ok(authService.getProfile());
-    }
-
-    @PutMapping("/profile")
-    @SecurityRequirement(name = "Bearer Authentication")
-    @Operation(summary = "Cập nhật thông tin cá nhân", description = "Cập nhật hồ sơ người dùng hiện tại, có thể bao gồm avatar. Yêu cầu JWT token.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cập nhật thông tin thành công",
-                    content = @Content(schema = @Schema(implementation = ProfileResponse.class)))
-    })
-    public ResponseEntity<APIResponse<ProfileResponse>> updateProfile(
-            @ModelAttribute ProfileRequestDTO profileRequest
-    ) {
-        return ResponseEntity.ok(authService.updateProfile(profileRequest));
-    }
-
 }
 

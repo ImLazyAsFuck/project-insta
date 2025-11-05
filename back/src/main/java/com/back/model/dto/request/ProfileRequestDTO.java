@@ -39,6 +39,4 @@ public class ProfileRequestDTO{
 
     @Pattern(regexp = "MALE|FEMALE|OTHER", message = "Giới tính phải là MALE, FEMALE hoặc OTHER")
     private String gender;
-
-    private MultipartFile avatar;
 }

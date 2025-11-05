@@ -2,7 +2,7 @@
   import axios from "axios";
   import { router } from "expo-router";
 
-  const BASE_URL = "http://192.168.1.236:8080/api/v1/";
+  const BASE_URL = "http://192.168.1.236:8080/api/v1";
 
   export const axiosInstance = axios.create({
     baseURL: BASE_URL,
@@ -22,7 +22,7 @@
   const refreshToken = async () => {
     const token = await AsyncStorage.getItem("REFRESH_TOKEN");
     if (!token) throw new Error("No refresh token");
-    const res = await axios.post(`${BASE_URL}/auth/refresh-token`, {
+    const res = await axios.post(`${BASE_URL}/auth/refresh`, {
       refreshToken: token,
     });
     const { accessToken, refreshToken: newToken } = res.data.data;
