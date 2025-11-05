@@ -41,6 +41,7 @@ public class User {
     private String avatarUrl;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "gender", nullable = false)
     private EGender gender;
 
     @ManyToOne(fetch = FetchType.EAGER)

@@ -23,6 +23,7 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
     @Transactional
     public RefreshToken createRefreshToken(User user) {
         refreshTokenRepository.deleteByUser(user);
+        refreshTokenRepository.flush();
         String jwtToken = jwtProvider.generateRefreshToken(user.getEmail());
 
         LocalDateTime expiryLocalDateTime = jwtProvider.getExpiryDateFromToken(jwtToken)
@@ -43,7 +44,7 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
         if (!jwtProvider.validateToken(token)) return false;
 
         return refreshTokenRepository.findByToken(token)
-                .filter(rt -> rt.getExpiryDate().isAfter(LocalDateTime.now()))
+                .filter(rt -> rt.getExpiryDate().isAfter(LocalDateTime.now(ZoneId.systemDefault())))
                 .isPresent();
     }
 

@@ -1,6 +1,5 @@
-package com.back.model.dto.request;
+package com.back.model.entity;
 
-import com.back.model.entity.User;
 import com.back.model.enums.EFriendRequestStatus;
 import jakarta.persistence.*;
 import lombok.*;

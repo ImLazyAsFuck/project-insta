@@ -1,6 +1,7 @@
 package com.back.controller;
 
 import com.back.model.dto.request.LoginRequestDTO;
+import com.back.model.dto.request.ProfileRequestDTO;
 import com.back.model.dto.request.RegisterRequestDTO;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.JWTResponse;
@@ -74,10 +75,11 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Đổi mật khẩu thành công")
     })
     public ResponseEntity<APIResponse<Void>> changePassword(
+            @RequestParam String oldPassword,
             @RequestParam String password,
             @RequestParam String confirmPassword
     ) {
-        return ResponseEntity.ok(authService.changePassword(password, confirmPassword));
+        return ResponseEntity.ok(authService.changePassword(oldPassword, password, confirmPassword));
     }
 
     @GetMapping("/profile")
@@ -90,5 +92,19 @@ public class AuthController {
     public ResponseEntity<APIResponse<ProfileResponse>> getProfile() {
         return ResponseEntity.ok(authService.getProfile());
     }
+
+    @PutMapping("/profile")
+    @SecurityRequirement(name = "Bearer Authentication")
+    @Operation(summary = "Cập nhật thông tin cá nhân", description = "Cập nhật hồ sơ người dùng hiện tại, có thể bao gồm avatar. Yêu cầu JWT token.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cập nhật thông tin thành công",
+                    content = @Content(schema = @Schema(implementation = ProfileResponse.class)))
+    })
+    public ResponseEntity<APIResponse<ProfileResponse>> updateProfile(
+            @ModelAttribute ProfileRequestDTO profileRequest
+    ) {
+        return ResponseEntity.ok(authService.updateProfile(profileRequest));
+    }
+
 }
 

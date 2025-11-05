@@ -18,12 +18,12 @@ public class RegisterRequestDTO {
 
     @NotBlank(message = "Mật khẩu không được để trống")
     @Pattern(
-            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$",
             message = "Mật khẩu phải chứa ít nhất 1 chữ cái, 1 số, 1 ký tự đặc biệt và tối thiểu 8 ký tự"
     )
     private String password;
 
-    private String name;
+    private String fullName;
 
     @NotBlank(message = "Tên người dùng không được để trống")
     @Size(min = 3, max = 30, message = "Tên người dùng phải có độ dài từ 3 đến 30 ký tự")
@@ -31,7 +31,7 @@ public class RegisterRequestDTO {
 
     @NotBlank(message = "Số điện thoại không được để trống")
     @Pattern(
-            regexp = "^(\\+84|0)(3[2-9]|5[25689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$",
+            regexp = "^0[3-9]\\d{8}$",
             message = "Số điện thoại không hợp lệ"
     )
     private String phoneNumber;

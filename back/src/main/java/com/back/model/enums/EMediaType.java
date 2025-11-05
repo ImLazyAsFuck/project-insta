@@ -1,4 +1,5 @@
 package com.back.model.enums;
 
-public interface EMediaType {
+public enum EMediaType{
+    IMAGE, VIDEO
 }

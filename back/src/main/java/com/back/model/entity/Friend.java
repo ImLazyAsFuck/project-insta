@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Friendship {
+public class Friend{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
