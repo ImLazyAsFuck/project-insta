@@ -1,24 +1,25 @@
 // app/notifications/_layout.js
-import { Stack, useRouter, useSegments } from 'expo-router';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Stack, useRouter, useSegments } from "expo-router";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Layout() {
   const router = useRouter();
   const segments = useSegments(); // lấy route hiện tại
-  const current = segments[segments.length - 1] ;
+  const current = segments[segments.length - 1];
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }}>
       {/* thanh tab dùng chung */}
       <View style={styles.tabBar}>
         <TouchableOpacity
-          style={[styles.tab, current === 'following' && styles.activeTab]}
-          onPress={() => router.push('/like/following')}
+          style={[styles.tab, current === "following" && styles.activeTab]}
+          onPress={() => router.push("/(tabs)/like/following")}
         >
           <Text
             style={
-              current === 'following'
+              current === "following"
                 ? styles.tabTextActive
                 : styles.tabTextInactive
             }
@@ -28,14 +29,12 @@ export default function Layout() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, current === 'like' && styles.activeTab]}
-          onPress={() => router.push('/like')}
+          style={[styles.tab, current === "like" && styles.activeTab]}
+          onPress={() => router.push("/(tabs)/like")}
         >
           <Text
             style={
-              current === 'like'
-                ? styles.tabTextActive
-                : styles.tabTextInactive
+              current === "like" ? styles.tabTextActive : styles.tabTextInactive
             }
           >
             You
@@ -45,33 +44,33 @@ export default function Layout() {
 
       {/* stack để hiển thị nội dung từng màn hình */}
       <Stack screenOptions={{ headerShown: false }} />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     borderBottomWidth: 1,
-    borderBottomColor: '#f8f8f8ff',
+    borderBottomColor: "#f8f8f8ff",
   },
   tab: {
     paddingVertical: 10,
-    width: '50%',
-    alignItems: 'center',
+    width: "50%",
+    alignItems: "center",
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#000',
+    borderBottomColor: "#000",
   },
   tabTextActive: {
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: "bold",
+    color: "#000",
     fontSize: 16,
   },
   tabTextInactive: {
     fontSize: 16,
-    color: '#888',
+    color: "#888",
   },
 });

@@ -1,11 +1,12 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function YouScreen() {
   const router = useRouter();
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* follow requests */}
@@ -120,7 +121,7 @@ export default function YouScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   )
 }
 

@@ -152,7 +152,6 @@ const styles = StyleSheet.create({
   viewerText: { color: "#fff", fontSize: 12 },
   endText: { color: "#fff", fontWeight: "600", fontSize: 16 },
 
-  // COMMENTS
   commentsContainer: {
     paddingHorizontal: 15,
     paddingBottom: 110,
@@ -163,7 +162,6 @@ const styles = StyleSheet.create({
   joinedText: { color: "#fff", fontWeight: "500", fontSize: 14 },
   wave: { color: "#FFD700", fontSize: 14, marginLeft: 6 },
 
-  // FOOTER
   footer: {
     flexDirection: "row",
     alignItems: "center",

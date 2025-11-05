@@ -1,6 +1,11 @@
-import { Feather, FontAwesome, FontAwesome6, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Tabs } from 'expo-router';
-import React from 'react';
+import {
+  Feather,
+  FontAwesome,
+  FontAwesome6,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import React from "react";
 
 export default function TabLayout() {
   return (
@@ -8,6 +13,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: "black",
         tabBarInactiveTintColor: "gray",
+        headerShown: false,
       }}
     >
       <Tabs.Screen
@@ -25,7 +31,7 @@ export default function TabLayout() {
           title: "",
 
           tabBarIcon: ({ color }) => {
-            return <Feather name="search" size={24} color={color} />
+            return <Feather name="search" size={24} color={color} />;
           },
         }}
       />
@@ -35,7 +41,7 @@ export default function TabLayout() {
           title: "",
 
           tabBarIcon: ({ color }) => {
-            return <FontAwesome6 name="add" size={24} color={color} />
+            return <FontAwesome6 name="add" size={24} color={color} />;
           },
         }}
       />
@@ -45,7 +51,7 @@ export default function TabLayout() {
           title: "",
           tabBarIcon: ({ color }) => {
             return (
-              <FontAwesome name="heart-o" size={24} color={color} /> 
+              <FontAwesome name="heart-o" size={24} color={color} />
               // <FontAwesome name="heart" size={24} color="black" />
             );
           },
@@ -56,10 +62,12 @@ export default function TabLayout() {
         options={{
           title: "",
           tabBarIcon: ({ color }) => {
-            return <MaterialCommunityIcons name="account" size={24} color={color} />;
+            return (
+              <MaterialCommunityIcons name="account" size={24} color={color} />
+            );
           },
         }}
       />
     </Tabs>
-  )
+  );
 }

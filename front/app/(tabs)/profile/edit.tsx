@@ -1,21 +1,56 @@
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useProfileQuery, useUpdateProfileMutation, useUploadAvatarMutation } from "@/hooks/useAccount";
+import { Gender } from "@/enums/gender.enum";
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const { data, isLoading } = useProfileQuery();
+  const { mutate: updateProfile, isPending: saving } = useUpdateProfileMutation();
+  const { mutate: uploadAvatar, isPending: uploading } = useUploadAvatarMutation();
+
   const [profile, setProfile] = useState({
-    name: 'Jacob West',
-    username: 'jacob_w',
+    fullName: '',
+    username: '',
     website: '',
-    bio: 'Digital goodies designer @pixsellz\nEverything is designed.',
-    email: 'jacob.west@gmail.com',
-    phone: '+1 202 555 0147',
-    gender: 'Male',
+    bio: '',
+    email: '',
+    phoneNumber: '',
+    gender: Gender.OTHER,
+    avatarUrl: '',
   });
+
+  useEffect(() => {
+    if (data?.data) {
+      const p = data.data;
+      setProfile({
+        fullName: p.fullName || '',
+        username: p.username || '',
+        website: p.website || '',
+        bio: p.bio || '',
+        email: p.email || '',
+        phoneNumber: p.phoneNumber || '',
+        gender: p.gender,
+        avatarUrl: p.avatarUrl || '',
+      });
+    }
+  }, [data]);
 
   const handleChange = (key, value) => {
     setProfile({ ...profile, [key]: value });
+  };
+
+  const handleSave = () => {
+    updateProfile({
+      fullName: profile.fullName,
+      username: profile.username,
+      email: profile.email,
+      phoneNumber: profile.phoneNumber,
+      website: profile.website,
+      bio: profile.bio,
+      gender: profile.gender,
+    });
   };
 
   return (
@@ -27,26 +62,26 @@ export default function EditProfileScreen() {
         </TouchableOpacity>
         <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Edit Profile</Text>
         
-        <TouchableOpacity onPress={() => router.push(`/profile`)}>
-            <Text style={{ color: '#0095f6', fontSize: 16 }}>Done</Text>
+        <TouchableOpacity onPress={handleSave} disabled={saving}>
+            <Text style={{ color: '#0095f6', fontSize: 16 }}>{saving ? 'Saving...' : 'Done'}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Avatar */}
       <View style={{ alignItems: 'center', marginTop: 10 }}>
         <Image
-          source={{ uri: 'https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg' }}
+          source={{ uri: profile.avatarUrl || 'https://placehold.co/100x100' }}
           style={{ width: 100, height: 100, borderRadius: 50 }}
         />
-        <TouchableOpacity>
-          <Text style={{ color: '#0095f6', marginTop: 8 }}>Change Profile Photo</Text>
+        <TouchableOpacity onPress={() => {/* integrate image picker to get fileUri and call uploadAvatar(fileUri) */}} disabled={uploading}>
+          <Text style={{ color: '#0095f6', marginTop: 8 }}>{uploading ? 'Uploading...' : 'Change Profile Photo'}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Info Fields */}
       <View style={{ marginTop: 20 }}>
         {[
-          { label: 'Name', key: 'name' },
+          { label: 'Name', key: 'fullName' },
           { label: 'Username', key: 'username' },
           { label: 'Website', key: 'website' },
           { label: 'Bio', key: 'bio', multiline: true },
@@ -81,7 +116,7 @@ export default function EditProfileScreen() {
 
         {[
           { label: 'Email', key: 'email' },
-          { label: 'Phone', key: 'phone' },
+          { label: 'Phone', key: 'phoneNumber' },
           { label: 'Gender', key: 'gender' },
         ].map((item) => (
           <View key={item.key} style={{ flexDirection: 'row', paddingVertical: 10 }}>

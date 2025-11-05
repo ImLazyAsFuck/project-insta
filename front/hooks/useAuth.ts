@@ -1,0 +1,71 @@
+import {
+  JWTResponse,
+  LoginRequest,
+  RegisterRequest,
+} from "@/interfaces/auth.interface";
+import { login, logout, register } from "@/services/auth.service";
+import { SingleResponse } from "@/utils/response-data";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { router } from "expo-router";
+
+const PROFILE_KEY = ["auth"];
+
+export const useLoginMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<SingleResponse<JWTResponse>, Error, LoginRequest>({
+    mutationFn: login,
+    onSuccess: async (res) => {
+      const { accessToken, refreshToken } = res.data;
+      await AsyncStorage.setItem("accessToken", accessToken);
+      await AsyncStorage.setItem("refreshToken", refreshToken);
+
+      queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
+
+      router.replace("/(tabs)/feed");
+    },
+    onError: (err) => {
+      console.log("Đăng nhập thất bại:", err.message);
+    },
+  });
+};
+
+export const useRegisterMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<SingleResponse<JWTResponse>, Error, RegisterRequest>({
+    mutationFn: register,
+    onSuccess: async (res) => {
+      const { accessToken, refreshToken } = res.data;
+      await AsyncStorage.setItem("accessToken", accessToken);
+      await AsyncStorage.setItem("refreshToken", refreshToken);
+
+      queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
+
+      router.replace("/(tabs)/feed");
+    },
+    onError: (err) => {
+      console.log("Đăng ký thất bại:", err.message);
+    },
+  });
+};
+
+export const useLogoutMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: logout,
+    onSuccess: async () => {
+      await AsyncStorage.removeItem("accessToken");
+      await AsyncStorage.removeItem("refreshToken");
+
+      queryClient.removeQueries({ queryKey: PROFILE_KEY });
+
+      router.replace("/(auth)/login");
+    },
+    onError: (err) => {
+      console.log("Đăng xuất thất bại:", (err as Error).message);
+    },
+  });
+};

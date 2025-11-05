@@ -1,26 +1,46 @@
-import { FontAwesome } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { useRegisterMutation } from "@/hooks/useAuth";
+import { FontAwesome } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
-} from 'react-native';
+  View,
+} from "react-native";
 
 export default function RegisterScreen() {
-  const [username, setUsername] = useState('');
-  const [fullname, setFullname] = useState('');
-  const [password, setPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [fullname, setFullname] = useState("");
+  const [password, setPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const { mutate: register, isPending } = useRegisterMutation();
 
   const handleRegister = () => {
-    console.log({ username, fullname, password, phoneNumber });
+    register({
+      email,
+      password,
+      fullName: fullname,
+      username,
+      phoneNumber,
+    });
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>Instagram</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor="#999"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
 
       <TextInput
         style={styles.input}
@@ -56,8 +76,14 @@ export default function RegisterScreen() {
         onChangeText={setPassword}
       />
 
-      <TouchableOpacity style={styles.signUpButton} onPress={handleRegister}>
-        <Text style={styles.signUpText}>Sign up</Text>
+      <TouchableOpacity
+        style={styles.signUpButton}
+        onPress={handleRegister}
+        disabled={isPending}
+      >
+        <Text style={styles.signUpText}>
+          {isPending ? "Signing up..." : "Sign up"}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.facebookButton}>
@@ -73,7 +99,9 @@ export default function RegisterScreen() {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Already have an account? </Text>
-        <Text style={styles.loginLink}>Log in.</Text>
+        <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
+          <Text style={styles.loginLink}>Log in.</Text>
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.bottomText}>Instagram or Facebook</Text>
@@ -84,80 +112,80 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 30,
   },
   logo: {
     fontSize: 42,
-    fontFamily: 'Billabong',
+    fontFamily: "Billabong",
     marginBottom: 40,
   },
   input: {
-    width: '100%',
+    width: "100%",
     height: 44,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 5,
-    backgroundColor: '#fafafa',
+    backgroundColor: "#fafafa",
     paddingHorizontal: 12,
     marginBottom: 10,
   },
   signUpButton: {
-    backgroundColor: '#3797EF',
+    backgroundColor: "#3797EF",
     paddingVertical: 12,
     borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     marginBottom: 15,
   },
   signUpText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 16,
   },
   facebookButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 25,
   },
   facebookText: {
-    color: '#3797EF',
-    fontWeight: '600',
+    color: "#3797EF",
+    fontWeight: "600",
     fontSize: 15,
   },
   dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
     marginBottom: 25,
   },
   line: {
     flex: 1,
     height: 1,
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
   },
   orText: {
     marginHorizontal: 10,
-    color: '#999',
-    fontWeight: '500',
+    color: "#999",
+    fontWeight: "500",
   },
   footer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 60,
   },
   footerText: {
-    color: '#999',
+    color: "#999",
   },
   loginLink: {
-    color: '#000',
-    fontWeight: '600',
+    color: "#000",
+    fontWeight: "600",
   },
   bottomText: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
-    color: '#999',
+    color: "#999",
     fontSize: 12,
   },
 });
