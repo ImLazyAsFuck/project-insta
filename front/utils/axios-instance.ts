@@ -2,7 +2,7 @@
   import axios from "axios";
   import { router } from "expo-router";
 
-  const BASE_URL = "https://localhost:8080/api/v1/";
+  const BASE_URL = "http://192.168.1.236:8080/api/v1/";
 
   export const axiosInstance = axios.create({
     baseURL: BASE_URL,
