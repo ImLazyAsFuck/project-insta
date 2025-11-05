@@ -18,8 +18,8 @@ export const useLoginMutation = () => {
     mutationFn: login,
     onSuccess: async (res) => {
       const { accessToken, refreshToken } = res.data;
-      await AsyncStorage.setItem("accessToken", accessToken);
-      await AsyncStorage.setItem("refreshToken", refreshToken);
+      await AsyncStorage.setItem("ACCESS_TOKEN", accessToken);
+      await AsyncStorage.setItem("REFRESH_TOKEN", refreshToken);
 
       queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
 
@@ -38,8 +38,8 @@ export const useRegisterMutation = () => {
     mutationFn: register,
     onSuccess: async (res) => {
       const { accessToken, refreshToken } = res.data;
-      await AsyncStorage.setItem("accessToken", accessToken);
-      await AsyncStorage.setItem("refreshToken", refreshToken);
+      await AsyncStorage.setItem("ACCESS_TOKEN", accessToken);
+      await AsyncStorage.setItem("REFRESH_TOKEN", refreshToken);
 
       queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
 
@@ -57,8 +57,8 @@ export const useLogoutMutation = () => {
   return useMutation({
     mutationFn: logout,
     onSuccess: async () => {
-      await AsyncStorage.removeItem("accessToken");
-      await AsyncStorage.removeItem("refreshToken");
+      await AsyncStorage.removeItem("ACCESS_TOKEN");
+      await AsyncStorage.removeItem("REFRESH_TOKEN");
 
       queryClient.removeQueries({ queryKey: PROFILE_KEY });
 

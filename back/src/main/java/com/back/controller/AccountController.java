@@ -1,5 +1,6 @@
 package com.back.controller;
 
+import com.back.model.dto.request.ChangePasswordRequest;
 import com.back.model.dto.request.ProfileRequestDTO;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.ProfileResponse;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -45,7 +47,7 @@ public class AccountController{
                     content = @Content(schema = @Schema(implementation = ProfileResponse.class)))
     })
     public ResponseEntity<APIResponse<ProfileResponse>> updateProfile(
-            @ModelAttribute ProfileRequestDTO profileRequest
+           @Valid @ModelAttribute ProfileRequestDTO profileRequest
     ) {
         return ResponseEntity.ok(accountService.updateProfileInfo(profileRequest));
     }
@@ -73,10 +75,8 @@ public class AccountController{
             @ApiResponse(responseCode = "200", description = "Đổi mật khẩu thành công")
     })
     public ResponseEntity<APIResponse<Void>> changePassword(
-            @RequestParam String oldPassword,
-            @RequestParam String password,
-            @RequestParam String confirmPassword
+            @RequestBody ChangePasswordRequest request
     ) {
-        return ResponseEntity.ok(accountService.changePassword(oldPassword, password, confirmPassword));
+        return ResponseEntity.ok(accountService.changePassword(request));
     }
 }

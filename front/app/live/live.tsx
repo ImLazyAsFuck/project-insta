@@ -1,4 +1,5 @@
 import React from "react";
+import { useAuthGuard } from "@/utils/use-auth-guard";
 import {
     Image,
     ImageBackground,
@@ -11,6 +12,7 @@ import {
 } from "react-native";
 
 export default function MyLive() {
+  useAuthGuard();
   return (
     <SafeAreaView style={styles.container}>
       {/* Video nền */}

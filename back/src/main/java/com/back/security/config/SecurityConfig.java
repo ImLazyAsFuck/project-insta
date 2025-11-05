@@ -33,20 +33,36 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", 
-                                "/swagger-resources/**", "/webjars/**", "/configuration/**").permitAll()
-                        .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login").permitAll()
-                        .requestMatchers( "/api/v1/auth/profile", "/api/v1/auth/change-password", "api/v1/auth/refresh", "api/v1/auth/logout").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/configuration/**"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                "/api/v1/auths/register",
+                                "/api/v1/auths/login",
+                                "/api/v1/auths/refresh"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                "/api/v1/accounts/**",
+                                "/api/v1/auths/logout"
+                        ).hasAnyRole("ADMIN", "USER")
 
                         .anyRequest().authenticated()
                 )
-
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
         return http.build();
     }
+
 
     @Bean
     public AuthenticationProvider authenticationProvider() {

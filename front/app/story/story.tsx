@@ -1,10 +1,13 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuthGuard } from "@/utils/use-auth-guard";
 
 export default function Story() {
+  useAuthGuard();
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Ảnh nền của story */}
       <ImageBackground
         source={{ uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg" }} // Thay bằng link ảnh thật
@@ -41,7 +44,7 @@ export default function Story() {
           </TouchableOpacity>
         </View>
       </ImageBackground>
-    </View>
+    </SafeAreaView>
   );
 }
 

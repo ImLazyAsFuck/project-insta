@@ -1,6 +1,8 @@
 import React from 'react'
 import { FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import Icon from 'react-native-vector-icons/Ionicons'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons';
+
 
 const categories = ['IGTV', 'Shop', 'Style', 'Sports', 'Auto']
 
@@ -21,9 +23,9 @@ const images = [
 
 export default function Search() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.searchBar}>
-        <Icon name="search-outline" size={20} color="#666" style={{ marginRight: 6 }} />
+        <Ionicons name="search-outline" size={20} color="#666" style={{ marginRight: 6 }} />
         <TextInput
           placeholder="Search"
           placeholderTextColor="#999"
@@ -52,7 +54,7 @@ export default function Search() {
         )}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   )
 }
 

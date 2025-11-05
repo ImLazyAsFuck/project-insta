@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuthGuard } from "@/utils/use-auth-guard";
 import {
     FlatList,
     Image,
@@ -70,6 +71,7 @@ const messagesData = [
 ];
 
 export default function Messages() {
+  useAuthGuard();
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.chatItem}>
       <Image source={{ uri: item.avatar }} style={styles.avatar} />

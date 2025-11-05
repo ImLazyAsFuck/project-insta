@@ -1,5 +1,6 @@
 package com.back.service.account;
 
+import com.back.model.dto.request.ChangePasswordRequest;
 import com.back.model.dto.request.ProfileRequestDTO;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.ProfileResponse;
@@ -46,7 +47,7 @@ public class AccountServiceImpl implements IAccountSerivce{
                 .bio(user.getBio())
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
-                .gender(String.valueOf(userDetails.getGender()))
+                .gender(String.valueOf(user.getGender()))
                 .avatarUrl(user.getAvatarUrl())
                 .build();
 
@@ -144,29 +145,29 @@ public class AccountServiceImpl implements IAccountSerivce{
     }
 
     @Override
-    public APIResponse<Void> changePassword(String oldPassword, String password, String confirmPassword) {
+    public APIResponse<Void> changePassword(ChangePasswordRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
         User user = userRepository.findByEmail(userDetails.getEmail())
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
-        if(!passwordEncoder.matches(oldPassword, user.getPassword())){
+        if(!passwordEncoder.matches(request.getOldPassword(), user.getPassword())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Mật khẩu không đúng");
         }
 
         String regex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$";
-        if (!password.matches(regex)) {
+        if (!request.getPassword().matches(regex)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ, số và ký tự đặc biệt");
         }
 
-        if (!password.equals(confirmPassword)) {
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mật khẩu xác nhận không khớp");
         }
 
-        user.setPassword(passwordEncoder.encode(password));
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
 
         return APIResponse.<Void>builder()

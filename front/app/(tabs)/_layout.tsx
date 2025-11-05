@@ -6,8 +6,10 @@ import {
 } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
+import { useAuthGuard } from "@/utils/use-auth-guard";
 
 export default function TabLayout() {
+  useAuthGuard();
   return (
     <Tabs
       screenOptions={{
