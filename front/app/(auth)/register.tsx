@@ -18,11 +18,17 @@ export default function RegisterScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const { mutate: register, isPending } = useRegisterMutation();
 
+  const isFormValid =
+    email.trim().length > 0 &&
+    username.trim().length > 0 &&
+    password.trim().length > 0 &&
+    phoneNumber.trim().length > 0;
+
   const handleRegister = () => {
     register({
       email,
       password,
-      fullName: fullname,
+      ...(fullname.trim().length > 0 && { fullName: fullname }),
       username,
       phoneNumber,
     });
@@ -77,9 +83,12 @@ export default function RegisterScreen() {
       />
 
       <TouchableOpacity
-        style={styles.signUpButton}
+        style={[
+          styles.signUpButton,
+          (!isFormValid || isPending) && styles.signUpButtonDisabled,
+        ]}
         onPress={handleRegister}
-        disabled={isPending}
+        disabled={!isFormValid || isPending}
       >
         <Text style={styles.signUpText}>
           {isPending ? "Signing up..." : "Sign up"}
@@ -139,6 +148,10 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     marginBottom: 15,
+  },
+  signUpButtonDisabled: {
+    backgroundColor: "#B2DFFC",
+    opacity: 0.6,
   },
   signUpText: {
     color: "#fff",

@@ -105,15 +105,21 @@ export default function ProfileScreen() {
             }}
           >
             <View style={{ alignItems: "center" }}>
-              <Text style={{ fontWeight: "bold", fontSize: 18 }}>54</Text>
+              <Text style={{ fontWeight: "bold", fontSize: 18 }}>
+                {profile?.postCount ?? 0}
+              </Text>
               <Text>Posts</Text>
             </View>
             <View style={{ alignItems: "center" }}>
-              <Text style={{ fontWeight: "bold", fontSize: 18 }}>834</Text>
+              <Text style={{ fontWeight: "bold", fontSize: 18 }}>
+                {profile?.followersCount ?? 0}
+              </Text>
               <Text>Followers</Text>
             </View>
             <View style={{ alignItems: "center" }}>
-              <Text style={{ fontWeight: "bold", fontSize: 18 }}>162</Text>
+              <Text style={{ fontWeight: "bold", fontSize: 18 }}>
+                {profile?.followingCount ?? 0}
+              </Text>
               <Text>Following</Text>
             </View>
           </View>

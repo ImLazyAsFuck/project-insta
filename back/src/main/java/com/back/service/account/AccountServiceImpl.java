@@ -5,7 +5,9 @@ import com.back.model.dto.request.ProfileRequestDTO;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.ProfileResponse;
 import com.back.model.entity.User;
+import com.back.model.enums.EFollowStatus;
 import com.back.model.enums.EGender;
+import com.back.repository.IFollowRepository;
 import com.back.repository.IUserRepository;
 import com.back.security.principal.CustomUserDetails;
 import com.back.service.cloudinary.CloudinaryService;
@@ -30,7 +32,7 @@ public class AccountServiceImpl implements IAccountSerivce{
     private final IUserRepository userRepository;
     private final CloudinaryService cloudinaryService;
     private final PasswordEncoder passwordEncoder;
-    private final IRefreshTokenService refreshTokenService;
+    private final IFollowRepository followRepository;
 
     @Override
     public APIResponse<ProfileResponse> getProfile() {
@@ -40,7 +42,13 @@ public class AccountServiceImpl implements IAccountSerivce{
         User user = userRepository.findByEmail(userDetails.getEmail())
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
+        long followersCount = followRepository.countByFollowingAndStatus(user, EFollowStatus.ACCEPTED);
+        long followingCount = followRepository.countByFollowerAndStatus(user, EFollowStatus.ACCEPTED);
+
+        long postCount = 0;
+
         ProfileResponse profileResponse = ProfileResponse.builder()
+                .id(user.getId())
                 .fullName(user.getFullName())
                 .username(user.getUsername())
                 .website(user.getWebsite())
@@ -49,6 +57,9 @@ public class AccountServiceImpl implements IAccountSerivce{
                 .phoneNumber(user.getPhoneNumber())
                 .gender(String.valueOf(user.getGender()))
                 .avatarUrl(user.getAvatarUrl())
+                .followersCount(followersCount)
+                .followingCount(followingCount)
+                .postCount(postCount)
                 .build();
 
         return APIResponse.<ProfileResponse>builder()
@@ -57,6 +68,7 @@ public class AccountServiceImpl implements IAccountSerivce{
                 .status(HttpStatus.OK.value())
                 .build();
     }
+
 
     @Override
     @Transactional

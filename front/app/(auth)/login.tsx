@@ -13,7 +13,9 @@ import {
 export default function LoginScreen() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const { mutate: login, isPending } = useLoginMutation();
+	const { mutate: login, isPending, isError, error, reset } = useLoginMutation();
+
+  const isFormValid = identifier.trim().length > 0 && password.trim().length > 0;
 
   const handleLogin = () => {
     login({ email: identifier, password });
@@ -22,29 +24,44 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>Instagram</Text>
-      <TextInput
-        style={styles.input}
+		<TextInput
+			style={styles.input}
         placeholder="Email"
         placeholderTextColor="#999"
         value={identifier}
-        onChangeText={setIdentifier}
+			onChangeText={(v) => {
+				if (isError) reset();
+				setIdentifier(v);
+			}}
       />
-      <TextInput
-        style={styles.input}
+		{isError ? (
+			<Text style={styles.errorText}>Email hoặc mật khẩu không chính xác</Text>
+		) : null}
+		<TextInput
+			style={styles.input}
         placeholder="Password"
         placeholderTextColor="#999"
         secureTextEntry
         value={password}
-        onChangeText={setPassword}
+			onChangeText={(v) => {
+				if (isError) reset();
+				setPassword(v);
+			}}
       />
+		{isError ? (
+			<Text style={styles.errorText}>Email hoặc mật khẩu không chính xác</Text>
+		) : null}
       <TouchableOpacity style={styles.forgotContainer}>
         <Text style={styles.forgotText}>Forgot password?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.loginButton}
+        style={[
+          styles.loginButton,
+          (!isFormValid || isPending) && styles.loginButtonDisabled,
+        ]}
         onPress={handleLogin}
-        disabled={isPending}
+        disabled={!isFormValid || isPending}
       >
         <Text style={styles.loginText}>
           {isPending ? "Logging in..." : "Log in"}
@@ -97,6 +114,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 10,
   },
+	errorText: {
+		width: "100%",
+		color: "#FF3B30",
+		fontSize: 13,
+		marginBottom: 10,
+	},
   forgotContainer: {
     alignSelf: "flex-end",
     marginBottom: 15,
@@ -112,6 +135,10 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     marginBottom: 15,
+  },
+  loginButtonDisabled: {
+    backgroundColor: "#B2DFFC",
+    opacity: 0.6,
   },
   loginText: {
     color: "#fff",

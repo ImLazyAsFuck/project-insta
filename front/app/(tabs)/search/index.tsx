@@ -1,59 +1,81 @@
-import React from 'react'
-import { FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useState } from 'react'
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Ionicons } from '@expo/vector-icons';
-
-
-const categories = ['IGTV', 'Shop', 'Style', 'Sports', 'Auto']
-
-const images = [
-  { id: '1', uri: 'https://picsum.photos/id/1/400/400' },
-  { id: '2', uri: 'https://picsum.photos/id/2/400/400' },
-  { id: '3', uri: 'https://picsum.photos/id/3/400/400' },
-  { id: '4', uri: 'https://picsum.photos/id/4/400/400' },
-  { id: '5', uri: 'https://picsum.photos/id/5/400/400' },
-  { id: '6', uri: 'https://picsum.photos/id/6/400/400' },
-  { id: '7', uri: 'https://picsum.photos/id/7/400/400' },
-  { id: '8', uri: 'https://picsum.photos/id/8/400/400' },
-  { id: '9', uri: 'https://picsum.photos/id/9/400/400' },
-  { id: '10', uri: 'https://picsum.photos/id/10/400/400' },
-  { id: '11', uri: 'https://picsum.photos/id/11/400/400' },
-  { id: '12', uri: 'https://picsum.photos/id/12/400/400' },
-]
+import { Ionicons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
+import { useSearchUsersByUsernameQuery } from '@/hooks/useUser'
+import { ProfileResponse } from '@/interfaces/profile.interface'
 
 export default function Search() {
+  const router = useRouter()
+  const [searchQuery, setSearchQuery] = useState('')
+  const { data, isLoading } = useSearchUsersByUsernameQuery(searchQuery)
+
+  const users = data?.data || []
+
+  const handleUserPress = (username: string) => {
+    router.push(`/(tabs)/profile/${username}`)
+  }
+
+  const renderUserItem = ({ item }: { item: ProfileResponse }) => (
+    <TouchableOpacity
+      style={styles.userItem}
+      onPress={() => handleUserPress(item.username)}
+    >
+      <Image
+        source={{ uri: item.avatarUrl || 'https://placehold.co/60x60' }}
+        style={styles.avatar}
+      />
+      <View style={styles.userInfo}>
+        <Text style={styles.username}>{item.username}</Text>
+        {item.fullName && (
+          <Text style={styles.fullName}>{item.fullName}</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  )
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={20} color="#666" style={{ marginRight: 6 }} />
         <TextInput
-          placeholder="Search"
+          placeholder="Search users by username"
           placeholderTextColor="#999"
           style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          autoCapitalize="none"
         />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={20} color="#666" />
+          </TouchableOpacity>
+        )}
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoryContainer}
-      >
-        {categories.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.categoryButton}>
-            <Text style={styles.categoryText}>{item}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      <FlatList
-        data={images}
-        numColumns={3}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <Image source={{ uri: item.uri }} style={styles.image} />
-        )}
-        showsVerticalScrollIndicator={false}
-      />
+      {searchQuery.trim().length === 0 ? (
+        <View style={styles.emptyState}>
+          <Ionicons name="search-outline" size={64} color="#ccc" />
+          <Text style={styles.emptyText}>Search for users by username</Text>
+        </View>
+      ) : isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      ) : users.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Ionicons name="person-outline" size={64} color="#ccc" />
+          <Text style={styles.emptyText}>No users found</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={users}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderUserItem}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   )
 }
@@ -78,27 +100,47 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#333',
   },
-  categoryContainer: {
+  userItem: {
     flexDirection: 'row',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#efefef',
   },
-  categoryButton: {
-    backgroundColor: '#efefef',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginRight: 8,
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 12,
   },
-  categoryText: {
+  userInfo: {
+    flex: 1,
+  },
+  username: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 2,
+  },
+  fullName: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
+    color: '#666',
   },
-  image: {
-    width: '32.5%',
-    aspectRatio: 1,
-    margin: '0.5%',
-    borderRadius: 8,
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#999',
+    marginTop: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
   },
 })

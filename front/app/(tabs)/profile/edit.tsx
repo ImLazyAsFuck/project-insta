@@ -6,6 +6,7 @@ import {
 } from "@/hooks/useAccount";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
 import {
   Image,
@@ -22,7 +23,7 @@ export default function EditProfileScreen() {
   const { data, isLoading: _isLoading } = useProfileQuery();
   const { mutate: updateProfile, isPending: saving } =
     useUpdateProfileMutation();
-  const { mutate: _uploadAvatar, isPending: uploading } =
+  const { mutate: uploadAvatar, isPending: uploading } =
     useUploadAvatarMutation();
 
   type ProfileForm = {
@@ -89,6 +90,39 @@ export default function EditProfileScreen() {
     );
   };
 
+  const handlePickAndUploadAvatar = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: [ImagePicker.MediaType.Images],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+      const uri = result.assets[0].uri;
+
+      // Optimistic preview
+      setProfile((prev) => ({ ...prev, avatarUrl: uri }));
+
+      uploadAvatar(uri, {
+        onError: () => {
+          // revert preview on failure by reloading from server snapshot
+          if (data?.data?.avatarUrl) {
+            setProfile((prev) => ({ ...prev, avatarUrl: data.data!.avatarUrl }));
+          }
+        },
+      });
+    } catch (e) {
+      // noop
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -121,9 +155,7 @@ export default function EditProfileScreen() {
             style={{ width: 100, height: 100, borderRadius: 50 }}
           />
           <TouchableOpacity
-            onPress={() => {
-              /* integrate image picker to get fileUri and call uploadAvatar(fileUri) */
-            }}
+            onPress={handlePickAndUploadAvatar}
             disabled={uploading}
           >
             <Text style={{ color: "#0095f6", marginTop: 8 }}>

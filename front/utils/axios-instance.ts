@@ -4,6 +4,7 @@ import { router } from "expo-router";
 
 const BASE_URL = "http://192.168.1.32:8080/api/v1";
 
+
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
@@ -38,7 +39,14 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   async (err) => {
     const original = err.config;
-    if (err.response?.status !== 401 || original._retry)
+    // Skip token refresh for auth endpoints (login, register)
+    // These endpoints don't need token refresh and their 401 errors should be handled normally
+    const isAuthEndpoint =
+      original.url?.includes("/auths/login") ||
+      original.url?.includes("/auths/register") ||
+      original.url?.includes("/auths/refresh");
+
+    if (err.response?.status !== 401 || original._retry || isAuthEndpoint)
       return Promise.reject(err);
     original._retry = true;
 

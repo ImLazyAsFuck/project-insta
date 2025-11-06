@@ -6,6 +6,7 @@ import {
 import {
   changePassword,
   getProfile,
+  getProfileByUsername,
   updateProfile,
   uploadAvatar,
 } from "@/services/account.service";
@@ -18,6 +19,14 @@ export const useProfileQuery = () => {
   return useQuery<SingleResponse<ProfileResponse>>({
     queryKey: PROFILE_KEY,
     queryFn: getProfile,
+  });
+};
+
+export const useOtherProfileQuery = (username: string | undefined) => {
+  return useQuery<SingleResponse<ProfileResponse>>({
+    queryKey: [...PROFILE_KEY, "other", username],
+    queryFn: () => getProfileByUsername(username as string),
+    enabled: Boolean(username),
   });
 };
 

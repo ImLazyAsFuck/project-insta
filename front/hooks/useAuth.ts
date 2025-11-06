@@ -8,6 +8,7 @@ import { SingleResponse } from "@/utils/response-data";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
+import { Alert } from "react-native";
 
 const PROFILE_KEY = ["auth"];
 
@@ -24,10 +25,7 @@ export const useLoginMutation = () => {
       queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
 
       router.replace("/(tabs)/feed");
-    },
-    onError: (err) => {
-      console.log("Đăng nhập thất bại:", err.message);
-    },
+		},
   });
 };
 
@@ -46,7 +44,7 @@ export const useRegisterMutation = () => {
       router.replace("/(tabs)/feed");
     },
     onError: (err) => {
-      console.log("Đăng ký thất bại:", err.message);
+      Alert.alert("Đăng ký thất bại:", err.message);
     },
   });
 };
@@ -65,7 +63,7 @@ export const useLogoutMutation = () => {
       router.replace("/(auth)/login");
     },
     onError: (err) => {
-      console.log("Đăng xuất thất bại:", (err as Error).message);
+      Alert.alert("Đăng xuất thất bại:", (err as Error).message);
     },
   });
 };

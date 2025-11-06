@@ -1,8 +1,7 @@
 package com.back.model.enums;
 
-public enum EFriendRequestStatus{
+public enum EFollowStatus {
     PENDING,
     ACCEPTED,
-    REJECTED,
-    BLOCKED
+    REJECTED
 }

@@ -8,7 +8,7 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  fullName: string;
+  fullName?: string;
   username: string;
   phoneNumber: string;
 }
@@ -16,6 +16,7 @@ export interface RegisterRequest {
 export interface JWTResponse {
   accessToken: string;
   refreshToken: string;
+  id: number;
   username: string;
   email: string;
   fullName: string | null;

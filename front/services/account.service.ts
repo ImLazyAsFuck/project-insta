@@ -4,7 +4,7 @@ import {
   ProfileResponse,
 } from "@/interfaces/profile.interface";
 import { axiosInstance } from "@/utils/axios-instance";
-import { SingleResponse } from "@/utils/response-data";
+import { BaseResponse, SingleResponse } from "@/utils/response-data";
 import { handleAxiosError } from "./error.service";
 
 export const getProfile = async (): Promise<
@@ -12,6 +12,19 @@ export const getProfile = async (): Promise<
 > => {
   try {
     const res = await axiosInstance.get("/accounts/profile");
+    return res.data;
+  } catch (error) {
+    throw handleAxiosError(error);
+  }
+};
+
+export const getProfileByUsername = async (
+  username: string
+): Promise<SingleResponse<ProfileResponse>> => {
+  try {
+    const res = await axiosInstance.get(
+      `/accounts/profile/${encodeURIComponent(username)}`
+    );
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -37,7 +50,6 @@ export const updateProfile = async (
 ): Promise<SingleResponse<ProfileResponse>> => {
   try {
     const form = new FormData();
-    // Append fields as strings for @ModelAttribute binding
     if (profile.fullName !== undefined)
       form.append("fullName", profile.fullName);
     form.append("username", profile.username);
@@ -74,6 +86,19 @@ export const uploadAvatar = async (
       },
     });
 
+    return res.data;
+  } catch (error) {
+    throw handleAxiosError(error);
+  }
+};
+
+export const searchUsers = async (
+  username: string
+): Promise<BaseResponse<ProfileResponse>> => {
+  try {
+    const res = await axiosInstance.get("/follows/search", {
+      params: { username },
+    });
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);

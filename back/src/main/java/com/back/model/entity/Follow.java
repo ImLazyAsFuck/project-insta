@@ -1,35 +1,35 @@
 package com.back.model.entity;
 
-import com.back.model.enums.EFriendshipStatus;
+import com.back.model.enums.EFollowStatus;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "friendships", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "friend_id"})
+@Table(name = "follows", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"follower_id", "following_id"})
 })
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Friend{
+public class Follow {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "follower_id", nullable = false)
+    private User follower;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "friend_id", nullable = false)
-    private User friend;
+    @JoinColumn(name = "following_id", nullable = false)
+    private User following;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EFriendshipStatus status;
+    private EFollowStatus status;
 
     private LocalDateTime createdAt;
 
