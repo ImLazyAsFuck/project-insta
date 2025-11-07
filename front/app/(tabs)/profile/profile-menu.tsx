@@ -11,11 +11,20 @@ import {
   View,
 } from "react-native";
 import { useLogoutMutation } from "@/hooks/useAuth";
+import { useRouter } from "expo-router";
+
 const { width } = Dimensions.get("window");
 
-export default function ProfileMenu({ visible, onClose }: { visible: boolean, onClose: () => void }) {
+export default function ProfileMenu({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
   const slideAnim = React.useRef(new Animated.Value(width)).current;
   const logoutMutation = useLogoutMutation();
+  const router = useRouter();
 
   React.useEffect(() => {
     if (visible) {
@@ -44,6 +53,13 @@ export default function ProfileMenu({ visible, onClose }: { visible: boolean, on
     ]);
   };
 
+  const goToFollowRequests = () => {
+    onClose();
+    setTimeout(() => {
+      router.push("/(tabs)/profile/follow-requests");
+    }, 200);
+  };
+
   return (
     <Modal transparent visible={visible} animationType="fade">
       <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
@@ -68,6 +84,11 @@ export default function ProfileMenu({ visible, onClose }: { visible: boolean, on
                 <Text style={styles.menuText}>{item.label}</Text>
               </TouchableOpacity>
             ))}
+
+            <TouchableOpacity style={styles.menuItem} onPress={goToFollowRequests}>
+              <Ionicons name="person-outline" size={22} color="#000" />
+              <Text style={styles.menuText}>Friend Requests</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem}>
               <FontAwesome name="facebook-square" size={22} color="#1877F2" />

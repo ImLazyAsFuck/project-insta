@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface IUserService{
     APIResponse<List<ProfileResponse>> searchByUsername(String username);
+    APIResponse<ProfileResponse> getProfileByUsername(String username);
 }

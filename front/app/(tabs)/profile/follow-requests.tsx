@@ -1,7 +1,12 @@
-import React from "react";
-import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  useAcceptFollowRequestMutation,
+  useFollowRequestsQuery,
+  useRejectFollowRequestMutation,
+} from "@/hooks/useFollow";
+import { ProfileResponse } from "@/interfaces/profile.interface";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -12,12 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useFollowRequestsQuery } from "@/hooks/useFollow";
-import {
-  useAcceptFollowRequestMutation,
-  useRejectFollowRequestMutation,
-} from "@/hooks/useFollow";
-import { ProfileResponse } from "@/interfaces/profile.interface";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function FollowRequestsScreen() {
   const router = useRouter();
@@ -50,7 +50,7 @@ export default function FollowRequestsScreen() {
   };
 
   const handleUserPress = (username: string) => {
-    router.push(`/(tabs)/profile/${username}`);
+    router.push(`/user/${username}`);
   };
 
   const renderRequest = ({ item }: { item: ProfileResponse }) => (
@@ -65,7 +65,9 @@ export default function FollowRequestsScreen() {
         />
         <View style={styles.textContainer}>
           <Text style={styles.username}>{item.username}</Text>
-          {item.fullName && <Text style={styles.fullName}>{item.fullName}</Text>}
+          {item.fullName && (
+            <Text style={styles.fullName}>{item.fullName}</Text>
+          )}
         </View>
       </TouchableOpacity>
       <View style={styles.buttonContainer}>
@@ -215,4 +217,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-

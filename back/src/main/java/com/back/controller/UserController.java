@@ -14,10 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -40,4 +37,15 @@ public class UserController{
         return ResponseEntity.ok(userService.searchByUsername(username));
     }
 
+    @GetMapping("/profile/{username}")
+    @Operation(summary = "Lấy thông tin profile của người dùng", description = "Truy xuất thông tin chi tiết người dùng theo username")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Thông tin profile người dùng",
+                    content = @Content(schema = @Schema(implementation = ProfileResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Người dùng không tồn tại")
+    })
+    public ResponseEntity<APIResponse<ProfileResponse>> getProfileByUsername(@PathVariable String username) {
+        APIResponse<ProfileResponse> response = userService.getProfileByUsername(username);
+        return ResponseEntity.ok(response);
+    }
 }

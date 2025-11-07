@@ -42,4 +42,21 @@ public class UserServiceImpl implements IUserService{
                 .status(200)
                 .build();
     }
+
+    @Override
+    public APIResponse<ProfileResponse> getProfileByUsername(String username){
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if(user == null){
+            throw new IllegalArgumentException("Không tìm thấy người dùng với username: " + username);
+        }
+
+        ProfileResponse profile = MapToProfileResponse.mapToProfileResponse(user);
+
+        return APIResponse.<ProfileResponse>builder()
+                .data(profile)
+                .message("Lấy thông tin người dùng thành công")
+                .build();
+    }
+
 }

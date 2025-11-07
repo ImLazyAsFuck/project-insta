@@ -15,6 +15,7 @@ import com.back.repository.IUserRepository;
 import com.back.security.jwt.JWTProvider;
 import com.back.security.principal.CustomUserDetails;
 import com.back.service.refreshtoken.IRefreshTokenService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -151,6 +152,7 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     @Override
+    @Transactional
     public APIResponse<Void> logout() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
