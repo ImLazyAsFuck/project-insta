@@ -18,19 +18,6 @@ export const getProfile = async (): Promise<
   }
 };
 
-export const getProfileByUsername = async (
-  username: string
-): Promise<SingleResponse<ProfileResponse>> => {
-  try {
-    const res = await axiosInstance.get(
-      `/accounts/profile/${encodeURIComponent(username)}`
-    );
-    return res.data;
-  } catch (error) {
-    throw handleAxiosError(error);
-  }
-};
-
 export const changePassword = async (
   changePassword: ChangePasswordRequest
 ): Promise<SingleResponse<void>> => {

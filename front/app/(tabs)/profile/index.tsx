@@ -1,7 +1,7 @@
 import { useProfileQuery } from "@/hooks/useAccount";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   FlatList,
   Image,
@@ -9,15 +9,14 @@ import {
   Text,
   TouchableOpacity,
   View,
-  VirtualizedList,
 } from "react-native";
-import ProfileMenu from "./profileMenu";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ProfileMenu from "./profile-menu";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
-  const { data, isLoading } = useProfileQuery();
+  const { data } = useProfileQuery();
   const profile = data?.data;
   const posts = [
     {
@@ -111,16 +110,34 @@ export default function ProfileScreen() {
               <Text>Posts</Text>
             </View>
             <View style={{ alignItems: "center" }}>
-              <Text style={{ fontWeight: "bold", fontSize: 18 }}>
-                {profile?.followersCount ?? 0}
-              </Text>
-              <Text>Followers</Text>
+              <TouchableOpacity
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onPress={() => router.push("/(tabs)/profile/followers")}
+              >
+                <Text style={{ fontWeight: "bold", fontSize: 18 }}>
+                  {profile?.followersCount ?? 0}
+                </Text>
+                <Text>Followers</Text>
+              </TouchableOpacity>
             </View>
             <View style={{ alignItems: "center" }}>
-              <Text style={{ fontWeight: "bold", fontSize: 18 }}>
-                {profile?.followingCount ?? 0}
-              </Text>
-              <Text>Following</Text>
+              <TouchableOpacity
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onPress={() => router.push("/(tabs)/profile/following")}
+              >
+                <Text style={{ fontWeight: "bold", fontSize: 18 }}>
+                  {profile?.followingCount ?? 0}
+                </Text>
+                <Text>Following</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>

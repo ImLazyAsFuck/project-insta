@@ -1,7 +1,12 @@
-import React from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useFollowingsQuery } from "@/hooks/useFollow";
+import { ProfileResponse } from "@/interfaces/profile.interface";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
+import React from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -11,8 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useFollowingsQuery } from "@/hooks/useFollow";
-import { ProfileResponse } from "@/interfaces/profile.interface";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function FollowingScreen() {
   const router = useRouter();
@@ -21,7 +25,7 @@ export default function FollowingScreen() {
   const followings = data?.data || [];
 
   const handleUserPress = (username: string) => {
-    router.push(`/(tabs)/profile/${username}`);
+    router.push(`/user/${username}` as RelativePathString);
   };
 
   const renderFollowing = ({ item }: { item: ProfileResponse }) => (
@@ -137,4 +141,3 @@ const styles = StyleSheet.create({
     color: "#666",
   },
 });
-

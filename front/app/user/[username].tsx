@@ -12,13 +12,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useOtherProfileQuery } from "@/hooks/useAccount";
+import { useOtherProfileQuery } from "@/hooks/useUser";
 import { useSendFollowRequestMutation } from "@/hooks/useFollow";
 
 export default function OtherProfileScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ username?: string }>();
   const username = params.username;
+  console.log(username);
 
   const { data, isLoading } = useOtherProfileQuery(username);
   const profile = data?.data;

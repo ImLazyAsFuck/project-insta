@@ -1,11 +1,21 @@
-import { FontAwesome, Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { Animated, Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import React from "react";
+import {
+  Animated,
+  Alert,
+  Dimensions,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useLogoutMutation } from "@/hooks/useAuth";
+const { width } = Dimensions.get("window");
 
-const { width } = Dimensions.get('window');
-
-export default function ProfileMenu({ visible, onClose }) {
+export default function ProfileMenu({ visible, onClose }: { visible: boolean, onClose: () => void }) {
   const slideAnim = React.useRef(new Animated.Value(width)).current;
+  const logoutMutation = useLogoutMutation();
 
   React.useEffect(() => {
     if (visible) {
@@ -21,7 +31,18 @@ export default function ProfileMenu({ visible, onClose }) {
         useNativeDriver: true,
       }).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim]);
+
+  const handleLogout = async () => {
+    Alert.alert("Xác nhận", "Bạn có chắc muốn đăng xuất không?", [
+      { text: "Huỷ", style: "cancel" },
+      {
+        text: "Đăng xuất",
+        style: "destructive",
+        onPress: () => logoutMutation.mutate(),
+      },
+    ]);
+  };
 
   return (
     <Modal transparent visible={visible} animationType="fade">
@@ -35,12 +56,12 @@ export default function ProfileMenu({ visible, onClose }) {
 
           <View style={styles.menu}>
             {[
-              { icon: 'time-outline', label: 'Archive' },
-              { icon: 'analytics-outline', label: 'Your Activity' },
-              { icon: 'qr-code-outline', label: 'Nametag' },
-              { icon: 'bookmark-outline', label: 'Saved' },
-              { icon: 'people-outline', label: 'Close Friends' },
-              { icon: 'person-add-outline', label: 'Discover People' },
+              { icon: "time-outline", label: "Archive" },
+              { icon: "analytics-outline", label: "Your Activity" },
+              { icon: "qr-code-outline", label: "Nametag" },
+              { icon: "bookmark-outline", label: "Saved" },
+              { icon: "people-outline", label: "Close Friends" },
+              { icon: "person-add-outline", label: "Discover People" },
             ].map((item, index) => (
               <TouchableOpacity key={index} style={styles.menuItem}>
                 <Ionicons name={item.icon} size={22} color="#000" />
@@ -58,6 +79,11 @@ export default function ProfileMenu({ visible, onClose }) {
             <Ionicons name="settings-outline" size={22} color="#000" />
             <Text style={styles.menuText}>Settings</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.menuItem, styles.logout]} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={22} color="#e74c3c" />
+            <Text style={[styles.menuText, { color: "#e74c3c" }]}>Log out</Text>
+          </TouchableOpacity>
         </Animated.View>
       </TouchableOpacity>
     </Modal>
@@ -67,14 +93,14 @@ export default function ProfileMenu({ visible, onClose }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
   },
   menuContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     width: width * 0.7,
-    height: '100%',
+    height: "100%",
     paddingHorizontal: 20,
     paddingTop: 60,
   },
@@ -83,14 +109,14 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   menu: {
     flexGrow: 1,
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 12,
   },
   menuText: {
@@ -99,8 +125,14 @@ const styles = StyleSheet.create({
   },
   setting: {
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
+    borderTopColor: "#ddd",
     paddingTop: 15,
     marginTop: 20,
+  },
+  logout: {
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+    paddingTop: 15,
+    marginTop: 10,
   },
 });

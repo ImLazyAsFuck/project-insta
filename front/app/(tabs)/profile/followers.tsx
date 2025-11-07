@@ -21,7 +21,7 @@ export default function FollowersScreen() {
   const followers = data?.data || [];
 
   const handleUserPress = (username: string) => {
-    router.push(`/(tabs)/profile/${username}`);
+    router.push(`/user/${username}`);
   };
 
   const renderFollower = ({ item }: { item: ProfileResponse }) => (

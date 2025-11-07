@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { useRouter } from 'expo-router'
+import { RelativePathString, useRouter } from 'expo-router'
 import { useSearchUsersByUsernameQuery } from '@/hooks/useUser'
 import { ProfileResponse } from '@/interfaces/profile.interface'
 
@@ -14,7 +14,7 @@ export default function Search() {
   const users = data?.data || []
 
   const handleUserPress = (username: string) => {
-    router.push(`/(tabs)/profile/${username}`)
+    router.push(`/user/${username}` as RelativePathString)
   }
 
   const renderUserItem = ({ item }: { item: ProfileResponse }) => (

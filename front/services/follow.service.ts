@@ -29,7 +29,7 @@ export const sendFollowRequest = async (
   followingId: number
 ): Promise<SingleResponse<void>> => {
   try {
-    const res = await axiosInstance.post(`/follows/send/${followingId}`);
+    const res = await axiosInstance.post(`/follows/${followingId}`);
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
