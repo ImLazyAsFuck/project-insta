@@ -1,4 +1,5 @@
 import { ProfileResponse } from "@/interfaces/profile.interface";
+import { EFollowStatus } from "@/types/FollowStatus";
 import { axiosInstance } from "@/utils/axios-instance";
 import { BaseResponse, SingleResponse } from "@/utils/response-data";
 import { handleAxiosError } from "./error.service";
@@ -74,6 +75,17 @@ export const removeFollow = async (
 ): Promise<SingleResponse<void>> => {
   try {
     const res = await axiosInstance.delete(`/follows/${followId}`);
+    return res.data;
+  } catch (error) {
+    throw handleAxiosError(error);
+  }
+};
+
+export const fetchFollowStatus = async (
+  targetId: number
+): Promise<SingleResponse<EFollowStatus>> => {
+  try {
+    const res = await axiosInstance.get(`/follows/status/${targetId}`);
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);

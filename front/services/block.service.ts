@@ -7,29 +7,28 @@ export const fetchBlockedUsers = async (): Promise<
   BaseResponse<ProfileResponse>
 > => {
   try {
-    const res = await axiosInstance.get(`/blocks`);
+    const res = await axiosInstance.get(`/block`);
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
   }
 };
 
-export const blockUser = async (
-  userId: number
-): Promise<SingleResponse<void>> => {
+export const blockUser = async (userId: number): Promise<SingleResponse<void>> => {
   try {
-    const res = await axiosInstance.post(`/blocks`, { userId });
+    const res = await axiosInstance.post(`/block/${userId}`);
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
   }
 };
+
 
 export const unblockUser = async (
   userId: number
 ): Promise<SingleResponse<void>> => {
   try {
-    const res = await axiosInstance.delete(`/blocks/${userId}`);
+    const res = await axiosInstance.delete(`/block/${userId}`);
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);

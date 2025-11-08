@@ -5,8 +5,8 @@ import {
   useUploadAvatarMutation,
 } from "@/hooks/useAccount";
 import { Picker } from "@react-native-picker/picker";
-import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Image,
@@ -92,13 +92,14 @@ export default function EditProfileScreen() {
 
   const handlePickAndUploadAvatar = async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: [ImagePicker.MediaType.Images],
+        mediaTypes: "images",
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -114,7 +115,10 @@ export default function EditProfileScreen() {
         onError: () => {
           // revert preview on failure by reloading from server snapshot
           if (data?.data?.avatarUrl) {
-            setProfile((prev) => ({ ...prev, avatarUrl: data.data!.avatarUrl }));
+            setProfile((prev) => ({
+              ...prev,
+              avatarUrl: data.data!.avatarUrl,
+            }));
           }
         },
       });

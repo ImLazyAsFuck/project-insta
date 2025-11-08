@@ -79,15 +79,3 @@ export const uploadAvatar = async (
   }
 };
 
-export const searchUsers = async (
-  username: string
-): Promise<BaseResponse<ProfileResponse>> => {
-  try {
-    const res = await axiosInstance.get("/follows/search", {
-      params: { username },
-    });
-    return res.data;
-  } catch (error) {
-    throw handleAxiosError(error);
-  }
-};

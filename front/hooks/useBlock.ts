@@ -4,7 +4,7 @@ import {
   fetchBlockedUsers,
   unblockUser,
 } from "@/services/block.service";
-import { BaseResponse, SingleResponse } from "@/utils/response-data";
+import { BaseResponse } from "@/utils/response-data";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const BLOCK_KEY = ["block"];
@@ -22,7 +22,6 @@ export const useBlockUserMutation = () => {
   return useMutation({
     mutationFn: (userId: number) => blockUser(userId),
     onSuccess: () => {
-      // Invalidate blocked users list and profile
       queryClient.invalidateQueries({ queryKey: [...BLOCK_KEY, "users"] });
       queryClient.invalidateQueries({ queryKey: ["account", "profile"] });
     },
@@ -35,10 +34,8 @@ export const useUnblockUserMutation = () => {
   return useMutation({
     mutationFn: (userId: number) => unblockUser(userId),
     onSuccess: () => {
-      // Invalidate blocked users list and profile
       queryClient.invalidateQueries({ queryKey: [...BLOCK_KEY, "users"] });
       queryClient.invalidateQueries({ queryKey: ["account", "profile"] });
     },
   });
 };
-

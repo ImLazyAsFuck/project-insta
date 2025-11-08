@@ -43,8 +43,19 @@ export const useUploadAvatarMutation = () => {
 
   return useMutation({
     mutationFn: (fileUri: string) => uploadAvatar(fileUri),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: PROFILE_KEY });
-    },
+    onSuccess: (uploadedAvatarUrl) => {
+      queryClient.setQueryData<SingleResponse<ProfileResponse>>(PROFILE_KEY, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            avatar: uploadedAvatarUrl,
+          },
+        };
+      });
+      queryClient.invalidateQueries({ queryKey: PROFILE_KEY })
+    }
+  
   });
 };

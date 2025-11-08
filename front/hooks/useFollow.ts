@@ -2,12 +2,14 @@ import { ProfileResponse } from "@/interfaces/profile.interface";
 import {
   acceptFollowRequest,
   fetchFollowRequests,
+  fetchFollowStatus,
   fetchFollowers,
   fetchFollowings,
   rejectFollowRequest,
   removeFollow,
   sendFollowRequest,
 } from "@/services/follow.service";
+import { EFollowStatus } from "@/types/FollowStatus";
 import { BaseResponse, SingleResponse } from "@/utils/response-data";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -40,7 +42,6 @@ export const useSendFollowRequestMutation = () => {
   return useMutation({
     mutationFn: (followingId: number) => sendFollowRequest(followingId),
     onSuccess: () => {
-      // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: [...FOLLOW_KEY, "requests"] });
       queryClient.invalidateQueries({ queryKey: [...FOLLOW_KEY, "followers"] });
       queryClient.invalidateQueries({ queryKey: [...FOLLOW_KEY, "following"] });
@@ -55,11 +56,11 @@ export const useAcceptFollowRequestMutation = () => {
   return useMutation({
     mutationFn: (followId: number) => acceptFollowRequest(followId),
     onSuccess: () => {
-      // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: [...FOLLOW_KEY, "requests"] });
       queryClient.invalidateQueries({ queryKey: [...FOLLOW_KEY, "followers"] });
       queryClient.invalidateQueries({ queryKey: [...FOLLOW_KEY, "following"] });
       queryClient.invalidateQueries({ queryKey: ["account", "profile"] });
+      queryClient.invalidateQueries({ queryKey: ["auth", "profile"] });
     },
   });
 };
@@ -70,8 +71,9 @@ export const useRejectFollowRequestMutation = () => {
   return useMutation({
     mutationFn: (followId: number) => rejectFollowRequest(followId),
     onSuccess: () => {
-      // Invalidate follow requests list
       queryClient.invalidateQueries({ queryKey: [...FOLLOW_KEY, "requests"] });
+      queryClient.invalidateQueries({ queryKey: ["account", "profile"] });
+      queryClient.invalidateQueries({ queryKey: ["auth", "profile"] });
     },
   });
 };
@@ -82,11 +84,17 @@ export const useRemoveFollowMutation = () => {
   return useMutation({
     mutationFn: (followId: number) => removeFollow(followId),
     onSuccess: () => {
-      // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: [...FOLLOW_KEY, "followers"] });
       queryClient.invalidateQueries({ queryKey: [...FOLLOW_KEY, "following"] });
       queryClient.invalidateQueries({ queryKey: ["account", "profile"] });
+      queryClient.invalidateQueries({ queryKey: ["auth", "profile"] });
     },
   });
 };
 
+export const useFollowStatusQuery = (targetId: number) => {
+  return useQuery<SingleResponse<EFollowStatus>>({
+    queryKey: [...FOLLOW_KEY, "status", targetId],
+    queryFn: () => fetchFollowStatus(targetId),
+  });
+};
