@@ -3,10 +3,12 @@ import {
   CommentResponse,
 } from "@/interfaces/comment.interface";
 import { axiosInstance } from "@/utils/axios-instance";
-import { SingleResponse } from "@/utils/response-data";
+import { BaseResponse, SingleResponse } from "@/utils/response-data";
 import { handleAxiosError } from "./error.service";
 
-export const fetchCommentsByPostId = async (postId: number) => {
+export const fetchCommentsByPostId = async (
+  postId: number
+): Promise<BaseResponse<CommentResponse>> => {
   try {
     const res = await axiosInstance.get(`comments/post/${postId}`);
     return res.data;

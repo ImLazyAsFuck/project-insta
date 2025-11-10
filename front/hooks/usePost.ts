@@ -6,6 +6,7 @@ import {
   fetchOwnPosts,
   fetchFeeds,
   fetchOtherPosts,
+  fetchPostDetail,
 } from "@/services/post.service";
 import { BaseResponse, SingleResponse } from "@/utils/response-data";
 
@@ -75,5 +76,13 @@ export const useTogglePostReactionMutation = () => {
           };
         });
       },
+  });
+};
+
+export const usePostDetailQuery = (postId: number) => {
+  return useQuery<SingleResponse<PostResponse>>({
+    queryKey: [...POST_KEY, "post", postId],
+    queryFn: () => fetchPostDetail(postId),
+    enabled: !!postId,
   });
 };

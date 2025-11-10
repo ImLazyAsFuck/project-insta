@@ -8,14 +8,14 @@ import {
   fetchCommentsByPostId,
 } from "@/services/comment.service";
 import { togglePostReaction } from "@/services/post.service";
-import { SingleResponse } from "@/utils/response-data";
+import { BaseResponse } from "@/utils/response-data";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { POST_KEY } from "./usePost";
 
 const COMMENT_KEY = ["comments"];
 
 export const useCommentsByPostQuery = (postId: number) => {
-  return useQuery<SingleResponse<CommentResponse[]>>({
+  return useQuery<BaseResponse<CommentResponse>>({
     queryKey: [...COMMENT_KEY, "post", postId],
     queryFn: () => fetchCommentsByPostId(postId),
     enabled: !!postId,

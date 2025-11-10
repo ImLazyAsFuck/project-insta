@@ -25,7 +25,6 @@ export const createPost = async (
   }
 };
 
-
 export const togglePostReaction = async (
   postId: number
 ): Promise<SingleResponse<void>> => {
@@ -60,6 +59,17 @@ export const fetchOtherPosts = async (
 ): Promise<BaseResponse<PostResponse>> => {
   try {
     const res = await axiosInstance.get(`/posts/other/${userId}`);
+    return res.data;
+  } catch (error) {
+    throw handleAxiosError(error);
+  }
+};
+
+export const fetchPostDetail = async (
+  postId: number
+): Promise<SingleResponse<PostResponse>> => {
+  try {
+    const res = await axiosInstance.get(`/posts/${postId}`);
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
