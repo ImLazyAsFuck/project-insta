@@ -23,6 +23,10 @@ export interface ProfileResponse {
   followersCount: number;
   followingCount: number;
   postCount: number;
+
+  isBlocked: boolean;
+  isBlockedByMe: boolean;
+  isBlockedByTarget: boolean;
 }
 
 export interface ChangePasswordRequest {

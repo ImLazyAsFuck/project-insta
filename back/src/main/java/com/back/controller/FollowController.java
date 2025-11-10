@@ -3,6 +3,7 @@ package com.back.controller;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.ProfileResponse;
 import com.back.model.entity.User;
+import com.back.model.enums.EFollowStatus;
 import com.back.service.follow.IFollowService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -79,5 +80,14 @@ public class FollowController {
         return ResponseEntity.ok(followService.getFollowing());
     }
 
+    @GetMapping("/status/{targetId}")
+    @Operation(summary = "Kiểm tra trạng thái follow giữa hai người dùng", description = "Kiểm tra xem người dùng hiện tại đang ở trạng thái follow nào với người dùng khác")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Trạng thái follow được lấy thành công",
+                    content = @Content(schema = @Schema(implementation = EFollowStatus.class)))
+    })
+    public ResponseEntity<APIResponse<EFollowStatus>> getFollowStatus(@PathVariable Long targetId) {
+        return ResponseEntity.ok(followService.getFollowStatus(targetId));
+    }
 
 }

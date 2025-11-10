@@ -51,7 +51,7 @@ public class AuthServiceImpl implements IAuthService {
                 )
         );
         User user = userRepository.findByEmail(loginRequestDTO.getEmail())
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy người dùng"));
 
         String accessToken = jwtUtils.generateAccessToken(user.getEmail());
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
@@ -158,7 +158,7 @@ public class AuthServiceImpl implements IAuthService {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
         User user = userRepository.findByEmail(userDetails.getEmail())
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy người dùng"));
 
         refreshTokenService.deleteByUser(user);
 

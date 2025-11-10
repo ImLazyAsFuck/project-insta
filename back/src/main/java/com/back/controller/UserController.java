@@ -2,8 +2,7 @@ package com.back.controller;
 
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.ProfileResponse;
-import com.back.model.entity.User;
-import com.back.service.User.IUserService;
+import com.back.service.user.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;

@@ -1,3 +1,5 @@
+import { useProfileQuery } from "@/hooks/useAccount";
+import { getProfile } from "@/services/account.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RelativePathString, router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -10,24 +12,24 @@ export default function Index() {
     const checkAuth = async () => {
       try {
         const accessToken = await AsyncStorage.getItem("ACCESS_TOKEN");
-
         if (!accessToken) {
           router.replace("/(auth)/login");
           return;
         }
-
-        const user = await AsyncStorage.getItem("USER");
+    
+        const user = await getProfile();
         if (user) {
-          router.replace("/(tabs)/index" as RelativePathString);
+          router.replace("/(tabs)/feed");
         } else {
-          router.replace("/(auth)/feed/index" as RelativePathString);
+          await AsyncStorage.multiRemove(["ACCESS_TOKEN", "REFRESH_TOKEN", "USER"]);
+          router.replace("/(auth)/login");
         }
       } catch (error) {
-        router.replace("/(auth)/index" as RelativePathString);
+        router.replace("/(auth)/login");
       } finally {
         setLoading(false);
       }
-    };
+    };    
     checkAuth();
   }, []);
 

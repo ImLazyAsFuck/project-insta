@@ -12,12 +12,14 @@ import com.back.service.block.IBlockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class BlockServiceImpl implements IBlockService{
 
     private final IUserRepository userRepository;
@@ -35,10 +37,24 @@ public class BlockServiceImpl implements IBlockService{
         User blocked = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Không tìm thấy người dùng để chặn"));
 
+        if (blocker.getId().equals(blocked.getId())) {
+            return APIResponse.<Void>builder()
+                    .status(400)
+                    .message("Không thể tự chặn chính mình")
+                    .build();
+        }
+
+        if (blockedUserRepository.existsByUserAndBlockedUser(blocked, blocker)) {
+            return APIResponse.<Void>builder()
+                    .status(403)
+                    .message("Người này đã chặn bạn, không thể chặn ngược lại")
+                    .build();
+        }
+
         if (blockedUserRepository.existsByUserAndBlockedUser(blocker, blocked)) {
             return APIResponse.<Void>builder()
                     .status(400)
-                    .message("Đã chặn người này trước đó")
+                    .message("Bạn đã chặn người này trước đó")
                     .build();
         }
 

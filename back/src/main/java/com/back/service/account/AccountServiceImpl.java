@@ -8,11 +8,13 @@ import com.back.model.entity.User;
 import com.back.model.enums.EFollowStatus;
 import com.back.model.enums.EGender;
 import com.back.repository.IFollowRepository;
+import com.back.repository.IPostRepository;
 import com.back.repository.IUserRepository;
 import com.back.security.principal.CustomUserDetails;
 import com.back.service.cloudinary.CloudinaryService;
 import com.back.service.refreshtoken.IRefreshTokenService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements IAccountSerivce{
@@ -33,6 +36,7 @@ public class AccountServiceImpl implements IAccountSerivce{
     private final CloudinaryService cloudinaryService;
     private final PasswordEncoder passwordEncoder;
     private final IFollowRepository followRepository;
+    private final IPostRepository postRepository;
 
     @Override
     public APIResponse<ProfileResponse> getProfile() {
@@ -45,7 +49,7 @@ public class AccountServiceImpl implements IAccountSerivce{
         long followersCount = followRepository.countByFollowingAndStatus(user, EFollowStatus.ACCEPTED);
         long followingCount = followRepository.countByFollowerAndStatus(user, EFollowStatus.ACCEPTED);
 
-        long postCount = 0;
+        long postCount = postRepository.countPostsByUserId(user.getId());
 
         ProfileResponse profileResponse = ProfileResponse.builder()
                 .id(user.getId())
@@ -60,6 +64,7 @@ public class AccountServiceImpl implements IAccountSerivce{
                 .followersCount(followersCount)
                 .followingCount(followingCount)
                 .postCount(postCount)
+                .status(user.getStatus().name())
                 .build();
 
         return APIResponse.<ProfileResponse>builder()
@@ -89,6 +94,11 @@ public class AccountServiceImpl implements IAccountSerivce{
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số điện thoại đã tồn tại");
         }
 
+        long followersCount = followRepository.countByFollowingAndStatus(user, EFollowStatus.ACCEPTED);
+        long followingCount = followRepository.countByFollowerAndStatus(user, EFollowStatus.ACCEPTED);
+
+        long postCount = postRepository.countPostsByUserId(user.getId());
+
         if (profileRequest.getFullName() != null) user.setFullName(profileRequest.getFullName());
         if (profileRequest.getUsername() != null) user.setUsername(profileRequest.getUsername());
         if (profileRequest.getEmail() != null) user.setEmail(profileRequest.getEmail());
@@ -100,14 +110,19 @@ public class AccountServiceImpl implements IAccountSerivce{
         userRepository.save(user);
 
         ProfileResponse response = ProfileResponse.builder()
+                .id(user.getId())
                 .fullName(user.getFullName())
                 .username(user.getUsername())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
                 .website(user.getWebsite())
                 .bio(user.getBio())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
                 .gender(String.valueOf(user.getGender()))
                 .avatarUrl(user.getAvatarUrl())
+                .followersCount(followersCount)
+                .followingCount(followingCount)
+                .postCount(postCount)
+                .status(user.getStatus().name())
                 .build();
 
         return APIResponse.<ProfileResponse>builder()
@@ -128,25 +143,35 @@ public class AccountServiceImpl implements IAccountSerivce{
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
         User user = userRepository.findByEmail(userDetails.getEmail())
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy người dùng"));
 
         try {
-            String avatarUrl = cloudinaryService.uploadFile(avatar);
+            String avatarUrl = cloudinaryService.uploadImage(avatar);
             user.setAvatarUrl(avatarUrl);
             userRepository.save(user);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Tải lên ảnh thất bại");
         }
 
+        long followersCount = followRepository.countByFollowingAndStatus(user, EFollowStatus.ACCEPTED);
+        long followingCount = followRepository.countByFollowerAndStatus(user, EFollowStatus.ACCEPTED);
+
+        long postCount = postRepository.countPostsByUserId(user.getId());
+
         ProfileResponse response = ProfileResponse.builder()
+                .id(user.getId())
                 .fullName(user.getFullName())
                 .username(user.getUsername())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
                 .website(user.getWebsite())
                 .bio(user.getBio())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
                 .gender(String.valueOf(user.getGender()))
                 .avatarUrl(user.getAvatarUrl())
+                .followersCount(followersCount)
+                .followingCount(followingCount)
+                .postCount(postCount)
+                .status(user.getStatus().name())
                 .build();
 
         return APIResponse.<ProfileResponse>builder()
@@ -162,7 +187,7 @@ public class AccountServiceImpl implements IAccountSerivce{
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
         User user = userRepository.findByEmail(userDetails.getEmail())
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy người dùng"));
 
         if(!passwordEncoder.matches(request.getOldPassword(), user.getPassword())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,

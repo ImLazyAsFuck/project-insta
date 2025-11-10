@@ -1,5 +1,5 @@
 import { ProfileResponse } from "@/interfaces/profile.interface";
-import { EFollowStatus } from "@/types/FollowStatus";
+import { EFollowStatus } from "@/types/follow.enum";
 import { axiosInstance } from "@/utils/axios-instance";
 import { BaseResponse, SingleResponse } from "@/utils/response-data";
 import { handleAxiosError } from "./error.service";

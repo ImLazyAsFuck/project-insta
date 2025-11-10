@@ -9,7 +9,7 @@ import {
   removeFollow,
   sendFollowRequest,
 } from "@/services/follow.service";
-import { EFollowStatus } from "@/types/FollowStatus";
+import { EFollowStatus } from "@/types/follow.enum";
 import { BaseResponse, SingleResponse } from "@/utils/response-data";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 

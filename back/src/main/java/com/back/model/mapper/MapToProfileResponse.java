@@ -15,6 +15,7 @@ public class MapToProfileResponse{
                 .phoneNumber(user.getPhoneNumber())
                 .gender(user.getGender() != null ? user.getGender().name() : null)
                 .avatarUrl(user.getAvatarUrl())
+                .status(user.getStatus() != null ? user.getStatus().name() : null)
                 .build();
     }
 }

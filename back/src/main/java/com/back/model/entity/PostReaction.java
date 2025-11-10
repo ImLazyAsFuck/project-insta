@@ -1,6 +1,5 @@
 package com.back.model.entity;
 
-import com.back.model.enums.EReactionType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -10,13 +9,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"post_id", "user_id"})
+        }
+)
 public class PostReaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Enumerated(EnumType.STRING)
-    private EReactionType type;
 
     private LocalDateTime createdAt;
 

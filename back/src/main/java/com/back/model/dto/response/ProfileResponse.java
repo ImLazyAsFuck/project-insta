@@ -23,5 +23,10 @@ public class ProfileResponse{
 
     private Long followersCount;
     private Long followingCount;
+
     private Long postCount;
+
+    private boolean isBlocked;
+    private Boolean isBlockedByMe;
+    private Boolean isBlockedByTarget;
 }

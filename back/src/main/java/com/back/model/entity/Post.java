@@ -1,5 +1,6 @@
 package com.back.model.entity;
 
+import com.back.model.enums.EVisibility;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -15,9 +16,11 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 500)
     private String content;
 
-    private String mediaUrl;
+    @Enumerated(EnumType.STRING)
+    private EVisibility visibility;
 
     private LocalDateTime createdAt;
 
@@ -30,4 +33,7 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostMedia> media;
 }

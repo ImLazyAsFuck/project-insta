@@ -1,4 +1,4 @@
-package com.back.service.User;
+package com.back.service.user;
 
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.ProfileResponse;

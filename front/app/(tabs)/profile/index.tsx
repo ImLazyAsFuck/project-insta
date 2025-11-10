@@ -1,4 +1,5 @@
 import { useProfileQuery } from "@/hooks/useAccount";
+import { useOwnPostsQuery } from "@/hooks/usePost";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -16,34 +17,11 @@ import ProfileMenu from "./profile-menu";
 export default function ProfileScreen() {
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
-  const { data } = useProfileQuery();
-  const profile = data?.data;
-  const posts = [
-    {
-      id: 1,
-      uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg",
-    },
-    {
-      id: 2,
-      uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg",
-    },
-    {
-      id: 3,
-      uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg",
-    },
-    {
-      id: 4,
-      uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg",
-    },
-    {
-      id: 5,
-      uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg",
-    },
-    {
-      id: 6,
-      uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg",
-    },
-  ];
+  const { data: profileData } = useProfileQuery();
+  const profile = profileData?.data;
+
+  const { data: postsData, isLoading } = useOwnPostsQuery();
+  const posts = postsData?.data || [];
 
   const highlights = [
     {
@@ -85,15 +63,12 @@ export default function ProfileScreen() {
           <Ionicons name="menu-outline" size={28} />
         </TouchableOpacity>
       </View>
+
       <ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
-        {/* Header */}
-        <View
-          style={{ flexDirection: "row", alignItems: "center", padding: 20 }}
-        >
+        {/* Profile Info */}
+        <View style={{ flexDirection: "row", alignItems: "center", padding: 20 }}>
           <Image
-            source={{
-              uri: profile?.avatarUrl || "https://placehold.co/120x120",
-            }}
+            source={{ uri: profile?.avatarUrl || "https://placehold.co/120x120" }}
             style={{ width: 80, height: 80, borderRadius: 40 }}
           />
           <View
@@ -111,11 +86,7 @@ export default function ProfileScreen() {
             </View>
             <View style={{ alignItems: "center" }}>
               <TouchableOpacity
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                style={{ alignItems: "center", justifyContent: "center" }}
                 onPress={() => router.push("/(tabs)/profile/followers")}
               >
                 <Text style={{ fontWeight: "bold", fontSize: 18 }}>
@@ -126,11 +97,7 @@ export default function ProfileScreen() {
             </View>
             <View style={{ alignItems: "center" }}>
               <TouchableOpacity
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                style={{ alignItems: "center", justifyContent: "center" }}
                 onPress={() => router.push("/(tabs)/profile/following")}
               >
                 <Text style={{ fontWeight: "bold", fontSize: 18 }}>
@@ -149,7 +116,6 @@ export default function ProfileScreen() {
           </Text>
           {profile?.bio ? <Text>{profile.bio}</Text> : null}
           {profile?.website ? <Text>{profile.website}</Text> : null}
-
           <TouchableOpacity
             style={{
               marginTop: 10,
@@ -172,10 +138,7 @@ export default function ProfileScreen() {
           style={{ marginVertical: 20, paddingLeft: 20 }}
         >
           {highlights.map((item) => (
-            <View
-              key={item.id}
-              style={{ alignItems: "center", marginRight: 15 }}
-            >
+            <View key={item.id} style={{ alignItems: "center", marginRight: 15 }}>
               <Image
                 source={{ uri: item.uri }}
                 style={{
@@ -204,24 +167,44 @@ export default function ProfileScreen() {
           <Ionicons name="person-outline" size={28} />
         </View>
 
-        {/* Grid Posts */}
-        <FlatList
-          data={posts}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={3}
-          renderItem={({ item }) => (
-            <Image
-              source={{ uri: item.uri }}
-              style={{ width: "33%", height: 120 }}
-              resizeMode="cover"
-            />
-          )}
-        />
+        {/* Grid Posts from API */}
+        {isLoading ? (
+          <Text style={{ padding: 20 }}>Loading posts...</Text>
+        ) : (
+          <FlatList
+            data={posts}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={3}
+            scrollEnabled={false}
+            columnWrapperStyle={{ justifyContent: "space-between", marginBottom: 2 }}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={{ flex: 1 / 3, margin: 1 }}
+              >
+                {item.mediaList?.[0]?.url ? (
+                  <Image
+                    source={{ uri: item.mediaList[0].url }}
+                    style={{ width: "100%", aspectRatio: 1, borderRadius: 4 }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View
+                    style={{
+                      width: "100%",
+                      aspectRatio: 1,
+                      backgroundColor: "#eee",
+                      borderRadius: 4,
+                    }}
+                  />
+                )}
+              </TouchableOpacity>
+            )}
+          />
+        )}
       </ScrollView>
-      <ProfileMenu
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-      />
+
+      <ProfileMenu visible={menuVisible} onClose={() => setMenuVisible(false)} />
     </SafeAreaView>
   );
 }
