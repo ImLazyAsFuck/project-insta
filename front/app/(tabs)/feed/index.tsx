@@ -15,7 +15,6 @@ import {
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
-// Tạm thời stories cứng
 const stories = [
   { id: "1", name: "Your Story", image: "https://i.imgur.com/2nCt3Sb.jpg" },
   { id: "2", name: "karenne", image: "https://i.imgur.com/8Km9tLL.jpg" },
@@ -189,6 +188,9 @@ export default function HomeScreen() {
         renderItem={renderPost}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
+        initialNumToRender={3}
+        windowSize={5}
+        removeClippedSubviews
       />
       {/* Chỗ cuối cùng trong HomeScreen, sau FlatList posts */}
       <CommentModal

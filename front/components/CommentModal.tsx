@@ -7,9 +7,10 @@ import {
 } from "@/hooks/useComment";
 import { CommentResponse } from "@/interfaces/comment.interface";
 import { Feather } from "@expo/vector-icons";
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -18,7 +19,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Image,
 } from "react-native";
 
 interface CommentModalProps {
@@ -27,7 +27,11 @@ interface CommentModalProps {
   postId: number;
 }
 
-export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) => {
+export const CommentModal = ({
+  visible,
+  onClose,
+  postId,
+}: CommentModalProps) => {
   const { data } = useCommentsByPostQuery(postId);
   const { data: profileData } = useProfileQuery();
   const createComment = useCreateCommentMutation();
@@ -39,14 +43,18 @@ export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) =>
 
   const comments = useMemo(() => {
     if (!data?.data) return [];
-  
-    const map = new Map<number, CommentResponse & { childComments: CommentResponse[] }>();
+
+    const map = new Map<
+      number,
+      CommentResponse & { childComments: CommentResponse[] }
+    >();
     data.data.forEach((c) => {
       map.set(c.id, { ...c, childComments: [] });
     });
-  
-    const roots: (CommentResponse & { childComments: CommentResponse[] })[] = [];
-  
+
+    const roots: (CommentResponse & { childComments: CommentResponse[] })[] =
+      [];
+
     data.data.forEach((c) => {
       if (c.parentId && map.has(c.parentId)) {
         const parent = map.get(c.parentId)!;
@@ -55,10 +63,9 @@ export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) =>
         roots.push(map.get(c.id)!);
       }
     });
-  
+
     return roots;
   }, [data]);
-  
 
   const handleAddComment = (parentId?: number | null) => {
     if (!newComment.trim() || !currentUser) return;
@@ -69,7 +76,8 @@ export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) =>
   const CommentText = ({ text }: { text: string }) => {
     const [expanded, setExpanded] = useState(false);
     const toggleExpand = () => setExpanded(!expanded);
-    if (text.length <= 100) return <Text style={styles.commentText}>{text}</Text>;
+    if (text.length <= 100)
+      return <Text style={styles.commentText}>{text}</Text>;
     return (
       <Text style={styles.commentText}>
         {expanded ? text : text.slice(0, 100) + "..."}
@@ -82,17 +90,24 @@ export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) =>
 
   const renderReply = (reply: CommentResponse) => (
     <View key={reply.id} style={styles.replyItem}>
-      <Image source={{ uri: reply.user.avatarUrl }} style={styles.commentAvatar} />
+      <Image
+        source={{ uri: reply.user.avatarUrl }}
+        style={styles.commentAvatar}
+      />
       <View style={{ flex: 1 }}>
         <Text style={styles.commentUsername}>{reply.user.username}</Text>
         {reply.replyToUsername && (
-          <Text style={{ fontSize: 12, color: "#555" }}>Trả lời {reply.replyToUsername}</Text>
+          <Text style={{ fontSize: 12, color: "#555" }}>
+            Trả lời {reply.replyToUsername}
+          </Text>
         )}
         <CommentText text={reply.content} />
         <View style={styles.commentActions}>
           <TouchableOpacity
             style={styles.reactionRow}
-            onPress={() => toggleReaction.mutate({ commentId: reply.id, postId })}
+            onPress={() =>
+              toggleReaction.mutate({ commentId: reply.id, postId })
+            }
           >
             <Feather
               name="heart"
@@ -103,7 +118,9 @@ export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) =>
           </TouchableOpacity>
           {reply.user.username === currentUser?.username && (
             <TouchableOpacity
-              onPress={() => deleteComment.mutate({ commentId: reply.id, postId })}
+              onPress={() =>
+                deleteComment.mutate({ commentId: reply.id, postId })
+              }
             >
               <Text style={styles.deleteText}>Xoá</Text>
             </TouchableOpacity>
@@ -120,14 +137,19 @@ export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) =>
   }) => {
     return (
       <View style={styles.commentItem}>
-        <Image source={{ uri: item.user.avatarUrl }} style={styles.commentAvatar} />
+        <Image
+          source={{ uri: item.user.avatarUrl }}
+          style={styles.commentAvatar}
+        />
         <View style={{ flex: 1 }}>
           <Text style={styles.commentUsername}>{item.user.username}</Text>
           <CommentText text={item.content} />
           <View style={styles.commentActions}>
             <TouchableOpacity
               style={styles.reactionRow}
-              onPress={() => toggleReaction.mutate({ commentId: item.id, postId })}
+              onPress={() =>
+                toggleReaction.mutate({ commentId: item.id, postId })
+              }
             >
               <Feather
                 name="heart"
@@ -141,7 +163,9 @@ export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) =>
             </TouchableOpacity>
             {item.user.username === currentUser?.username && (
               <TouchableOpacity
-                onPress={() => deleteComment.mutate({ commentId: item.id, postId })}
+                onPress={() =>
+                  deleteComment.mutate({ commentId: item.id, postId })
+                }
               >
                 <Text style={styles.deleteText}>Xoá</Text>
               </TouchableOpacity>
@@ -156,7 +180,12 @@ export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) =>
   };
 
   return (
-    <Modal animationType="slide" visible={visible} onRequestClose={onClose}>
+    <Modal
+      style={{ padding: 10 }}
+      animationType="slide"
+      visible={visible}
+      onRequestClose={onClose}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.modalContainer}
@@ -177,7 +206,10 @@ export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) =>
 
         {currentUser && (
           <View style={styles.inputRow}>
-            <Image source={{ uri: currentUser.avatarUrl }} style={styles.inputAvatar} />
+            <Image
+              source={{ uri: currentUser.avatarUrl }}
+              style={styles.inputAvatar}
+            />
             <View style={{ flex: 1 }}>
               <TextInput
                 style={styles.input}
@@ -197,7 +229,7 @@ export const CommentModal = ({ visible, onClose, postId }: CommentModalProps) =>
 };
 
 const styles = StyleSheet.create({
-  modalContainer: { flex: 1, backgroundColor: "#fff" },
+  modalContainer: { flex: 1, backgroundColor: "#fff", paddingVertical: 10 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -205,6 +237,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderBottomWidth: 0.5,
     borderBottomColor: "#ddd",
+    marginTop: 10,
   },
   headerText: { fontSize: 18, fontWeight: "bold" },
   closeText: { fontSize: 18, color: "#007AFF" },
