@@ -1,7 +1,7 @@
 package com.back.service.auth;
 
-import com.back.model.dto.request.LoginRequestDTO;
-import com.back.model.dto.request.RegisterRequestDTO;
+import com.back.model.dto.request.LoginRequest;
+import com.back.model.dto.request.RegisterRequest;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.JWTResponse;
 import com.back.model.entity.RefreshToken;
@@ -43,14 +43,14 @@ public class AuthServiceImpl implements IAuthService {
 
 
     @Override
-    public APIResponse<JWTResponse> login(LoginRequestDTO loginRequestDTO) {
+    public APIResponse<JWTResponse> login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequestDTO.getEmail(),
-                        loginRequestDTO.getPassword()
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()
                 )
         );
-        User user = userRepository.findByEmail(loginRequestDTO.getEmail())
+        User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new NoSuchElementException("Không tìm thấy người dùng"));
 
         String accessToken = jwtUtils.generateAccessToken(user.getEmail());
@@ -78,7 +78,7 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     @Override
-    public APIResponse<JWTResponse> register(RegisterRequestDTO dto) {
+    public APIResponse<JWTResponse> register(RegisterRequest dto) {
 
         if(userRepository.existsByUsername(dto.getUsername())){
             throw new DataIntegrityViolationException("Tên người dùng đã tồn tại");

@@ -17,7 +17,8 @@ public class Message {
 
     private String content;
 
-    private String mediaUrl;
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MessageMedia> mediaList;
 
     private LocalDateTime createdAt;
 

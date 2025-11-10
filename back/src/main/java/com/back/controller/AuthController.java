@@ -1,11 +1,9 @@
 package com.back.controller;
 
-import com.back.model.dto.request.LoginRequestDTO;
-import com.back.model.dto.request.ProfileRequestDTO;
-import com.back.model.dto.request.RegisterRequestDTO;
+import com.back.model.dto.request.LoginRequest;
+import com.back.model.dto.request.RegisterRequest;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.JWTResponse;
-import com.back.model.dto.response.ProfileResponse;
 import com.back.service.auth.IAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,7 +32,7 @@ public class AuthController {
             @ApiResponse(responseCode = "201", description = "Đăng ký thành công",
                     content = @Content(schema = @Schema(implementation = JWTResponse.class)))
     })
-    public ResponseEntity<APIResponse<JWTResponse>> register(@Valid @RequestBody RegisterRequestDTO dto) {
+    public ResponseEntity<APIResponse<JWTResponse>> register(@Valid @RequestBody RegisterRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(dto));
     }
 
@@ -44,7 +42,7 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Đăng nhập thành công",
                     content = @Content(schema = @Schema(implementation = JWTResponse.class)))
     })
-    public ResponseEntity<APIResponse<JWTResponse>> login(@Valid @RequestBody LoginRequestDTO dto) {
+    public ResponseEntity<APIResponse<JWTResponse>> login(@Valid @RequestBody LoginRequest dto) {
         return ResponseEntity.ok(authService.login(dto));
     }
 

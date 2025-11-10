@@ -1,7 +1,7 @@
 package com.back.controller;
 
 import com.back.model.dto.request.ChangePasswordRequest;
-import com.back.model.dto.request.ProfileRequestDTO;
+import com.back.model.dto.request.ProfileRequest;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.ProfileResponse;
 import com.back.service.account.IAccountSerivce;
@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +46,7 @@ public class AccountController{
                     content = @Content(schema = @Schema(implementation = ProfileResponse.class)))
     })
     public ResponseEntity<APIResponse<ProfileResponse>> updateProfile(
-           @Valid @ModelAttribute ProfileRequestDTO profileRequest
+           @Valid @ModelAttribute ProfileRequest profileRequest
     ) {
         return ResponseEntity.ok(accountService.updateProfileInfo(profileRequest));
     }

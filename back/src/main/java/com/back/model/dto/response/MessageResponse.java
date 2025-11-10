@@ -9,13 +9,12 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessageDTO {
+public class MessageResponse{
     private Long id;
     private Long conversationId;
-    private Long senderId;
+    private UserSummaryResponse sender;
     private String content;
-    private String mediaUrl;
+    private List<String> mediaUrls;
     private LocalDateTime createdAt;
-    private List<Long> seenBy;
-    private List<MessageReactionDTO> reactions;
+    private List<MessageReactionResponse> reactions;
 }

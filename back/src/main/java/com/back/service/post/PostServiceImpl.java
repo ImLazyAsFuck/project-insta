@@ -1,6 +1,6 @@
 package com.back.service.post;
 
-import com.back.model.dto.request.PostRequestDTO;
+import com.back.model.dto.request.PostRequest;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.PostMediaResponse;
 import com.back.model.dto.response.PostResponse;
@@ -41,7 +41,7 @@ public class PostServiceImpl implements IPostService{
 
     @Override
     @Transactional
-    public APIResponse<PostResponse> createPost(PostRequestDTO request){
+    public APIResponse<PostResponse> createPost(PostRequest request){
         CustomUserDetails currentUserDetails = (CustomUserDetails) SecurityContextHolder
                 .getContext()
                 .getAuthentication()

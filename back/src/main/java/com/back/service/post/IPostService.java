@@ -1,15 +1,14 @@
 package com.back.service.post;
 
-import com.back.model.dto.request.PostRequestDTO;
+import com.back.model.dto.request.PostRequest;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.PostResponse;
-import com.back.model.entity.PostReaction;
 import com.back.model.enums.EVisibility;
 
 import java.util.List;
 
 public interface IPostService{
-    APIResponse<PostResponse> createPost(PostRequestDTO request);
+    APIResponse<PostResponse> createPost(PostRequest request);
     APIResponse<List<PostResponse>> getFeeds();
     APIResponse<List<PostResponse>> getOwnPosts();
     APIResponse<List<PostResponse>> getOtherPosts(long userId);

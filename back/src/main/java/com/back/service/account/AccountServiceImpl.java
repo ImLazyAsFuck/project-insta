@@ -1,7 +1,7 @@
 package com.back.service.account;
 
 import com.back.model.dto.request.ChangePasswordRequest;
-import com.back.model.dto.request.ProfileRequestDTO;
+import com.back.model.dto.request.ProfileRequest;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.ProfileResponse;
 import com.back.model.entity.User;
@@ -12,7 +12,6 @@ import com.back.repository.IPostRepository;
 import com.back.repository.IUserRepository;
 import com.back.security.principal.CustomUserDetails;
 import com.back.service.cloudinary.CloudinaryService;
-import com.back.service.refreshtoken.IRefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -77,7 +76,7 @@ public class AccountServiceImpl implements IAccountSerivce{
 
     @Override
     @Transactional
-    public APIResponse<ProfileResponse> updateProfileInfo(ProfileRequestDTO profileRequest) {
+    public APIResponse<ProfileResponse> updateProfileInfo(ProfileRequest profileRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 

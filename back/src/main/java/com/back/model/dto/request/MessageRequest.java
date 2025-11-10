@@ -10,9 +10,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MessageRequestDTO {
+public class MessageRequest{
     private Long conversationId;
-    private Long senderId;
     private String content;
-    private List<MultipartFile> mediaUrl;
+    private List<MultipartFile> media;
+    private Long senderId;
 }

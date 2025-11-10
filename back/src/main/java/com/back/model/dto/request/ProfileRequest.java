@@ -1,6 +1,5 @@
 package com.back.model.dto.request;
 
-import com.back.model.enums.EGender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -9,13 +8,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ProfileRequestDTO{
+public class ProfileRequest{
     private String fullName;
 
     @NotBlank(message = "Tên người dùng không được để trống")

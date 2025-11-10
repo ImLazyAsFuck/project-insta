@@ -1,6 +1,6 @@
 package com.back.controller;
 
-import com.back.model.dto.request.PostRequestDTO;
+import com.back.model.dto.request.PostRequest;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.PostResponse;
 import com.back.model.enums.EVisibility;
@@ -9,10 +9,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,9 +25,9 @@ public class PostController{
 
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<APIResponse<PostResponse>> createPost(
-            @ModelAttribute PostRequestDTO postRequestDTO
+            @ModelAttribute PostRequest postRequest
     ) {
-        APIResponse<PostResponse> response = postService.createPost(postRequestDTO);
+        APIResponse<PostResponse> response = postService.createPost(postRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

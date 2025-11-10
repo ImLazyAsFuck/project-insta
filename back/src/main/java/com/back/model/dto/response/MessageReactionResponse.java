@@ -1,4 +1,4 @@
-package com.back.model.dto.request;
+package com.back.model.dto.response;
 
 import com.back.model.enums.EReactionType;
 import lombok.*;
@@ -8,7 +8,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessageReactionRequest{
+public class MessageReactionResponse{
     private Long id;
     private Long userId;
     private String username;

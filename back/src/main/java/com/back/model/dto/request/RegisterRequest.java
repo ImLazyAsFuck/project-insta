@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegisterRequestDTO {
+public class RegisterRequest{
 
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không hợp lệ")

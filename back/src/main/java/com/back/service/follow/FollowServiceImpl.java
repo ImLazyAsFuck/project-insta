@@ -2,11 +2,13 @@ package com.back.service.follow;
 
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.ProfileResponse;
+import com.back.model.entity.Conversation;
 import com.back.model.entity.Follow;
 import com.back.model.entity.User;
 import com.back.model.enums.EFollowStatus;
 import com.back.model.enums.EUserStatus;
 import com.back.model.mapper.MapToProfileResponse;
+import com.back.repository.IConversationRepository;
 import com.back.repository.IFollowRepository;
 import com.back.repository.IUserRepository;
 import com.back.security.principal.CustomUserDetails;
@@ -15,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -26,6 +29,7 @@ public class FollowServiceImpl implements IFollowService {
 
     private final IFollowRepository followRepository;
     private final IUserRepository userRepository;
+    private final IConversationRepository conversationRepository;
 
     @Override
     public APIResponse<Void> followUser(Long followingId) {
@@ -79,6 +83,17 @@ public class FollowServiceImpl implements IFollowService {
 
         follow.setStatus(EFollowStatus.ACCEPTED);
         followRepository.save(follow);
+
+        Optional<Conversation> existingConversation = conversationRepository
+                .findConversationByParticipants(follow.getFollower().getId(), follow.getFollowing().getId());
+
+        if (existingConversation.isEmpty()) {
+            Conversation conversation = Conversation.builder()
+                    .participants(List.of(follow.getFollower(), follow.getFollowing()))
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            conversationRepository.save(conversation);
+        }
 
         return APIResponse.<Void>builder()
                 .message("Đã chấp nhận yêu cầu theo dõi")
