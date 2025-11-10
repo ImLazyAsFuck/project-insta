@@ -27,22 +27,14 @@ export default function ProfileMenu({
   const router = useRouter();
 
   React.useEffect(() => {
-    if (visible) {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: width,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [visible, slideAnim]);
+    Animated.timing(slideAnim, {
+      toValue: visible ? 0 : width,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [visible]);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     Alert.alert("Xác nhận", "Bạn có chắc muốn đăng xuất không?", [
       { text: "Huỷ", style: "cancel" },
       {
@@ -60,6 +52,13 @@ export default function ProfileMenu({
     }, 200);
   };
 
+  const goToMessages = () => {
+    onClose();
+    setTimeout(() => {
+      router.push("/message");
+    }, 200);
+  };
+
   return (
     <Modal transparent visible={visible} animationType="fade">
       <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
@@ -71,28 +70,14 @@ export default function ProfileMenu({
           </View>
 
           <View style={styles.menu}>
-            {[
-              { icon: "time-outline", label: "Archive" },
-              { icon: "analytics-outline", label: "Your Activity" },
-              { icon: "qr-code-outline", label: "Nametag" },
-              { icon: "bookmark-outline", label: "Saved" },
-              { icon: "people-outline", label: "Close Friends" },
-              { icon: "person-add-outline", label: "Discover People" },
-            ].map((item, index) => (
-              <TouchableOpacity key={index} style={styles.menuItem}>
-                <Ionicons name={item.icon} size={22} color="#000" />
-                <Text style={styles.menuText}>{item.label}</Text>
-              </TouchableOpacity>
-            ))}
+            <TouchableOpacity style={styles.menuItem} onPress={goToMessages}>
+              <Ionicons name="chatbubble-outline" size={22} color="#000" />
+              <Text style={styles.menuText}>Messages</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={goToFollowRequests}>
               <Ionicons name="person-outline" size={22} color="#000" />
               <Text style={styles.menuText}>Friend Requests</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <FontAwesome name="facebook-square" size={22} color="#1877F2" />
-              <Text style={styles.menuText}>Open Facebook</Text>
             </TouchableOpacity>
           </View>
 

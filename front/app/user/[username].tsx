@@ -233,6 +233,7 @@ export default function OtherProfileScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
+                  onPress={() => router.push("/message")}
                     style={{
                       flex: 1,
                       borderWidth: 1,
