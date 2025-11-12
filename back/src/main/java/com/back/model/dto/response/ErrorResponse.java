@@ -1,4 +1,4 @@
-package com.back.utils.exception;
+package com.back.model.dto.response;
 
 import lombok.*;
 

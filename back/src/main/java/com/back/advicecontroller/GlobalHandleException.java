@@ -1,6 +1,8 @@
 package com.back.advicecontroller;
 
-import com.back.utils.exception.ErrorResponse;
+import com.back.model.dto.response.APIResponse;
+import com.back.model.dto.response.ErrorResponse;
+import com.back.utils.exception.CustomRegisterException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -117,5 +119,18 @@ public class GlobalHandleException extends ResponseEntityExceptionHandler {
                         .error(ex.getMessage())
                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .build());
+    }
+
+    @ExceptionHandler(CustomRegisterException.class)
+    public ErrorResponse handleCustomRegisterException(CustomRegisterException ex) {
+        String combinedErrors = ex.getErrors().stream()
+                .map(err -> err.getField() + ": " + err.getMessage())
+                .collect(Collectors.joining(", "));
+
+        return ErrorResponse.builder()
+                .message("Đăng ký thất bại")
+                .error(combinedErrors)
+                .status(HttpStatus.BAD_REQUEST.value())
+                .build();
     }
 }

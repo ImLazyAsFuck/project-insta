@@ -6,43 +6,43 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Layout() {
   const router = useRouter();
-  const segments = useSegments(); // lấy route hiện tại
+  const segments = useSegments();
   const current = segments[segments.length - 1];
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      {/* thanh tab dùng chung */}
       <View style={styles.tabBar}>
         <TouchableOpacity
-          style={[styles.tab, current === "following" && styles.activeTab]}
-          onPress={() => router.push("/(tabs)/like/following")}
+          style={[styles.tab, current === "follow-request" && styles.activeTab]}
+          onPress={() => router.push("/(tabs)/notification/follow-request")}
         >
           <Text
             style={
-              current === "following"
+              current === "follow-request"
                 ? styles.tabTextActive
                 : styles.tabTextInactive
             }
           >
-            Following
+            Follow Requests
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, current === "like" && styles.activeTab]}
-          onPress={() => router.push("/(tabs)/like")}
+          style={[styles.tab, current === "notification" && styles.activeTab]}
+          onPress={() => router.push("/(tabs)/notification")}
         >
           <Text
             style={
-              current === "like" ? styles.tabTextActive : styles.tabTextInactive
+              current === "notification"
+                ? styles.tabTextActive
+                : styles.tabTextInactive
             }
           >
-            You
+            Notifications
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* stack để hiển thị nội dung từng màn hình */}
       <Stack screenOptions={{ headerShown: false }} />
     </SafeAreaView>
   );

@@ -3,6 +3,7 @@ package com.back.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,7 +19,7 @@ public class Message {
     private String content;
 
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MessageMedia> mediaList;
+    private List<MessageMedia> mediaList = new ArrayList<>();
 
     private LocalDateTime createdAt;
 

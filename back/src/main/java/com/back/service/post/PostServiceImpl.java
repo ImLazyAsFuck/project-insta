@@ -155,9 +155,12 @@ public class PostServiceImpl implements IPostService{
         return getListAPIResponse(postsWithMedia);
     }
 
-    private APIResponse<List<PostResponse>> getListAPIResponse(List<Post> posts){
+    private APIResponse<List<PostResponse>> getListAPIResponse(List<Post> posts) {
         List<PostResponse> response = posts.stream()
                 .map(post -> {
+                    long totalReactions = postReactionRepository.countReactionsByPostId(post.getId());
+                    long totalComments = commentRepository.countCommentsByPostId(post.getId());
+
                     List<PostMediaResponse> mediaList = post.getMedia().stream()
                             .map(m -> PostMediaResponse.builder()
                                     .id(m.getId())
@@ -177,8 +180,8 @@ public class PostServiceImpl implements IPostService{
                                     .avatarUrl(post.getUser().getAvatarUrl())
                                     .build())
                             .mediaList(mediaList)
-                            .totalReactions(0)
-                            .totalComments(0)
+                            .totalReactions((int) totalReactions)
+                            .totalComments((int) totalComments)
                             .reactedByCurrentUser(false)
                             .build();
                 })
@@ -189,6 +192,7 @@ public class PostServiceImpl implements IPostService{
                 .message("Lấy feeds thành công")
                 .build();
     }
+
 
     @Override
     public APIResponse<List<PostResponse>> getOwnPosts(){
@@ -328,11 +332,13 @@ public class PostServiceImpl implements IPostService{
                         .build())
                 .toList();
 
+        List<Comment> comments = commentRepository.findByPost(post);
+
         PostResponse postResponse = PostResponse.builder()
                 .id(post.getId())
                 .content(post.getContent())
                 .totalReactions(post.getReactions().size())
-                .totalComments(commentRepository.findByPost(post).size())
+                .totalComments(comments.size())
                 .reactedByCurrentUser(postReactionRepository.existsByPostIdAndUserId(postId, currentUserDetails.getId()))
                 .mediaList(mediaList)
                 .createdAt(post.getCreatedAt())

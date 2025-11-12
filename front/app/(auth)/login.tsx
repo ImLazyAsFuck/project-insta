@@ -1,5 +1,4 @@
 import { useLoginMutation } from "@/hooks/useAuth";
-import { FontAwesome } from "@expo/vector-icons"; // nếu dùng Expo
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -13,9 +12,16 @@ import {
 export default function LoginScreen() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-	const { mutate: login, isPending, isError, error, reset } = useLoginMutation();
+  const {
+    mutate: login,
+    isPending,
+    isError,
+    error,
+    reset,
+  } = useLoginMutation();
 
-  const isFormValid = identifier.trim().length > 0 && password.trim().length > 0;
+  const isFormValid =
+    identifier.trim().length > 0 && password.trim().length > 0;
 
   const handleLogin = () => {
     login({ email: identifier, password });
@@ -24,33 +30,37 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.logo}>Instagram</Text>
-		<TextInput
-			style={styles.input}
+      <TextInput
+        style={styles.input}
         placeholder="Email"
         placeholderTextColor="#999"
         value={identifier}
-			onChangeText={(v) => {
-				if (isError) reset();
-				setIdentifier(v);
-			}}
+        onChangeText={(v) => {
+          if (isError) reset();
+          setIdentifier(v);
+        }}
       />
-		{isError ? (
-			<Text style={styles.errorText}>Email hoặc mật khẩu không chính xác</Text>
-		) : null}
-		<TextInput
-			style={styles.input}
+      {isError ? (
+        <Text style={styles.errorText}>
+          Email hoặc mật khẩu không chính xác
+        </Text>
+      ) : null}
+      <TextInput
+        style={styles.input}
         placeholder="Password"
         placeholderTextColor="#999"
         secureTextEntry
         value={password}
-			onChangeText={(v) => {
-				if (isError) reset();
-				setPassword(v);
-			}}
+        onChangeText={(v) => {
+          if (isError) reset();
+          setPassword(v);
+        }}
       />
-		{isError ? (
-			<Text style={styles.errorText}>Email hoặc mật khẩu không chính xác</Text>
-		) : null}
+      {isError ? (
+        <Text style={styles.errorText}>
+          Email hoặc mật khẩu không chính xác
+        </Text>
+      ) : null}
       <TouchableOpacity style={styles.forgotContainer}>
         <Text style={styles.forgotText}>Forgot password?</Text>
       </TouchableOpacity>
@@ -67,17 +77,6 @@ export default function LoginScreen() {
           {isPending ? "Logging in..." : "Log in"}
         </Text>
       </TouchableOpacity>
-
-      <TouchableOpacity style={styles.facebookButton}>
-        <FontAwesome name="facebook-square" size={20} color="#3797EF" />
-        <Text style={styles.facebookText}> Log in with Facebook</Text>
-      </TouchableOpacity>
-
-      <View style={styles.dividerContainer}>
-        <View style={styles.line} />
-        <Text style={styles.orText}>OR</Text>
-        <View style={styles.line} />
-      </View>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Don’t have an account? </Text>
@@ -114,12 +113,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 10,
   },
-	errorText: {
-		width: "100%",
-		color: "#FF3B30",
-		fontSize: 13,
-		marginBottom: 10,
-	},
+  errorText: {
+    width: "100%",
+    color: "#FF3B30",
+    fontSize: 13,
+    marginBottom: 10,
+  },
   forgotContainer: {
     alignSelf: "flex-end",
     marginBottom: 15,

@@ -45,11 +45,16 @@ export default function OtherProfileScreen() {
 
   React.useEffect(() => {
     if (menuVisible) {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+      // Reset giá trị về vị trí ban đầu trước khi animate
+      slideAnim.setValue(width);
+      // Sử dụng requestAnimationFrame để đảm bảo render xong trước khi animate
+      requestAnimationFrame(() => {
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      });
     } else {
       Animated.timing(slideAnim, {
         toValue: width,

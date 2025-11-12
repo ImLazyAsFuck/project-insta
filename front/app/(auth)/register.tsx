@@ -1,5 +1,5 @@
 import { useRegisterMutation } from "@/hooks/useAuth";
-import { FontAwesome } from "@expo/vector-icons";
+import { ErrorResponse } from "@/utils/error-response";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -16,22 +16,166 @@ export default function RegisterScreen() {
   const [fullname, setFullname] = useState("");
   const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<ErrorResponse | null>(null);
   const { mutate: register, isPending } = useRegisterMutation();
 
+  const validateEmail = (value: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(value.trim());
+  };
+  const validateUsername = (value: string) => {
+    const v = value.trim();
+    return v.length >= 3 && v.length <= 30;
+  };
+  const validatePassword = (value: string) => {
+    const re = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    return re.test(value);
+  };
+  const validatePhone = (value: string) => {
+    const re = /^0[3-9]\d{8}$/;
+    return re.test(value.trim());
+  };
+
+  const parseApiErrors = (errorString: string) => {
+    const errors: Record<string, string[]> = {};
+    if (!errorString) return errors;
+
+    const errorParts = errorString.split(",").map((part) => part.trim());
+    
+    errorParts.forEach((part) => {
+      const colonIndex = part.indexOf(":");
+      if (colonIndex > 0) {
+        const field = part.substring(0, colonIndex).trim();
+        const message = part.substring(colonIndex + 1).trim();
+        if (field && message) {
+          let normalizedField = field;
+          if (field.toLowerCase() === "phonenumber") {
+            normalizedField = "phoneNumber";
+          } else if (field.toLowerCase() === "email") {
+            normalizedField = "email";
+          } else if (field.toLowerCase() === "username") {
+            normalizedField = "username";
+          } else if (field.toLowerCase() === "password") {
+            normalizedField = "password";
+          }
+          
+          if (!errors[normalizedField]) {
+            errors[normalizedField] = [];
+          }
+          errors[normalizedField].push(message);
+        }
+      } else {
+        const lowerPart = part.toLowerCase();
+        if (lowerPart.includes("email")) {
+          const message = part;
+          if (!errors.email) {
+            errors.email = [];
+          }
+          errors.email.push(message);
+        } else if (lowerPart.includes("phone") || lowerPart.includes("số điện thoại")) {
+          const message = part;
+          if (!errors.phoneNumber) {
+            errors.phoneNumber = [];
+          }
+          errors.phoneNumber.push(message);
+        } else if (lowerPart.includes("username") || lowerPart.includes("tên người dùng")) {
+          const message = part;
+          if (!errors.username) {
+            errors.username = [];
+          }
+          errors.username.push(message);
+        } else if (lowerPart.includes("password") || lowerPart.includes("mật khẩu")) {
+          const message = part;
+          if (!errors.password) {
+            errors.password = [];
+          }
+          errors.password.push(message);
+        }
+      }
+    });
+    return errors;
+  };
+
+  React.useEffect(() => {
+    if (
+      apiError &&
+      apiError.status === 400 &&
+      typeof apiError.error === "string"
+    ) {
+      const parsedErrors = parseApiErrors(apiError.error);
+
+      if (parsedErrors.email && parsedErrors.email.length > 0) {
+        setEmailError(parsedErrors.email[0]);
+      }
+
+      if (parsedErrors.password && parsedErrors.password.length > 0) {
+        setPasswordError(parsedErrors.password[0]);
+      }
+
+      if (parsedErrors.username && parsedErrors.username.length > 0) {
+        setUsernameError(parsedErrors.username[0]);
+      }
+
+      if (parsedErrors.phoneNumber && parsedErrors.phoneNumber.length > 0) {
+        setPhoneError(parsedErrors.phoneNumber[0]);
+      }
+    }
+  }, [apiError]);
+
   const isFormValid =
-    email.trim().length > 0 &&
-    username.trim().length > 0 &&
-    password.trim().length > 0 &&
-    phoneNumber.trim().length > 0;
+    validateEmail(email) &&
+    validateUsername(username) &&
+    validatePassword(password) &&
+    validatePhone(phoneNumber);
 
   const handleRegister = () => {
-    register({
-      email,
-      password,
-      ...(fullname.trim().length > 0 && { fullName: fullname }),
-      username,
-      phoneNumber,
-    });
+    setEmailError(validateEmail(email) ? null : "Email không hợp lệ");
+    const u = username.trim();
+    if (!u) {
+      setUsernameError("Tên người dùng không được để trống");
+    } else if (!validateUsername(u)) {
+      setUsernameError("Tên người dùng phải có độ dài từ 3 đến 30 ký tự");
+    } else {
+      setUsernameError(null);
+    }
+    setPasswordError(
+      validatePassword(password)
+        ? null
+        : "Mật khẩu phải chứa ít nhất 1 chữ cái, 1 số, 1 ký tự đặc biệt và tối thiểu 8 ký tự"
+    );
+    const pn = phoneNumber.trim();
+    if (!pn) {
+      setPhoneError("Số điện thoại không được để trống");
+    } else {
+      setPhoneError(validatePhone(pn) ? null : "Số điện thoại không hợp lệ");
+    }
+    if (!isFormValid) return;
+    setApiError(null);
+    register(
+      {
+        email,
+        password,
+        ...(fullname.trim().length > 0 && { fullName: fullname }),
+        username,
+        phoneNumber,
+      },
+      {
+        onError: (err: any) => {
+          if (
+            err &&
+            typeof err === "object" &&
+            "error" in err &&
+            "status" in err
+          ) {
+            setApiError(err as ErrorResponse);
+          }
+        },
+      }
+    );
   };
 
   return (
@@ -45,16 +189,36 @@ export default function RegisterScreen() {
         keyboardType="email-address"
         autoCapitalize="none"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(v) => {
+          setEmail(v);
+          if (emailError) setEmailError(null);
+        }}
+        onBlur={() =>
+          setEmailError(validateEmail(email) ? null : "Email không hợp lệ")
+        }
       />
+      {!!emailError && <Text style={styles.errorText}>{emailError}</Text>}
 
       <TextInput
         style={styles.input}
         placeholder="Username"
         placeholderTextColor="#999"
         value={username}
-        onChangeText={setUsername}
+        onChangeText={(v) => {
+          setUsername(v);
+          if (usernameError) setUsernameError(null);
+        }}
+        onBlur={() =>
+          setUsernameError(() => {
+            const u = username.trim();
+            if (!u) return "Tên người dùng không được để trống";
+            if (!validateUsername(u))
+              return "Tên người dùng phải có độ dài từ 3 đến 30 ký tự";
+            return null;
+          })
+        }
       />
+      {!!usernameError && <Text style={styles.errorText}>{usernameError}</Text>}
 
       <TextInput
         style={styles.input}
@@ -70,8 +234,19 @@ export default function RegisterScreen() {
         placeholderTextColor="#999"
         keyboardType="phone-pad"
         value={phoneNumber}
-        onChangeText={setPhoneNumber}
+        onChangeText={(v) => {
+          setPhoneNumber(v);
+          if (phoneError) setPhoneError(null);
+        }}
+        onBlur={() =>
+          setPhoneError(() => {
+            const pn = phoneNumber.trim();
+            if (!pn) return "Số điện thoại không được để trống";
+            return validatePhone(pn) ? null : "Số điện thoại không hợp lệ";
+          })
+        }
       />
+      {!!phoneError && <Text style={styles.errorText}>{phoneError}</Text>}
 
       <TextInput
         style={styles.input}
@@ -79,8 +254,19 @@ export default function RegisterScreen() {
         placeholderTextColor="#999"
         secureTextEntry
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(v) => {
+          setPassword(v);
+          if (passwordError) setPasswordError(null);
+        }}
+        onBlur={() =>
+          setPasswordError(
+            validatePassword(password)
+              ? null
+              : "Mật khẩu phải chứa ít nhất 1 chữ cái, 1 số, 1 ký tự đặc biệt và tối thiểu 8 ký tự"
+          )
+        }
       />
+      {!!passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
 
       <TouchableOpacity
         style={[
@@ -94,17 +280,6 @@ export default function RegisterScreen() {
           {isPending ? "Signing up..." : "Sign up"}
         </Text>
       </TouchableOpacity>
-
-      <TouchableOpacity style={styles.facebookButton}>
-        <FontAwesome name="facebook-square" size={20} color="#3797EF" />
-        <Text style={styles.facebookText}> Sign up with Facebook</Text>
-      </TouchableOpacity>
-
-      <View style={styles.dividerContainer}>
-        <View style={styles.line} />
-        <Text style={styles.orText}>OR</Text>
-        <View style={styles.line} />
-      </View>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Already have an account? </Text>
@@ -200,5 +375,12 @@ const styles = StyleSheet.create({
     bottom: 20,
     color: "#999",
     fontSize: 12,
+  },
+  errorText: {
+    width: "100%",
+    color: "#e74c3c",
+    fontSize: 12,
+    marginTop: -6,
+    marginBottom: 8,
   },
 });

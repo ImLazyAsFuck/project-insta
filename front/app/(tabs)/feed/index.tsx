@@ -2,6 +2,7 @@ import { CommentModal } from "@/components/CommentModal";
 import { useFeedsQuery, useTogglePostReactionMutation } from "@/hooks/usePost";
 import { PostResponse } from "@/interfaces/post.interface";
 import { Feather, FontAwesome } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   Dimensions,
@@ -14,13 +15,6 @@ import {
 } from "react-native";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
-
-const stories = [
-  { id: "1", name: "Your Story", image: "https://i.imgur.com/2nCt3Sb.jpg" },
-  { id: "2", name: "karenne", image: "https://i.imgur.com/8Km9tLL.jpg" },
-  { id: "3", name: "zackjohn", image: "https://i.imgur.com/6VBx3io.jpg" },
-  { id: "4", name: "kieron_d", image: "https://i.imgur.com/jNNT4LE.jpg" },
-];
 
 export default function HomeScreen() {
   const { data, isLoading } = useFeedsQuery();
@@ -55,6 +49,13 @@ export default function HomeScreen() {
       toggleReaction.mutate({ postId });
     };
 
+    const handleOpenPostDetail = () => {
+      router.push({
+        pathname: "/post/[id]",
+        params: { id: item.id.toString() },
+      });
+    };
+
     return (
       <View style={styles.postContainer}>
         {/* Header */}
@@ -76,7 +77,9 @@ export default function HomeScreen() {
           data={item.mediaList}
           keyExtractor={(media) => media.id.toString()}
           renderItem={({ item: media }) => (
-            <Image source={{ uri: media.url }} style={styles.postImage} />
+            <TouchableOpacity activeOpacity={0.9} onPress={handleOpenPostDetail}>
+              <Image source={{ uri: media.url }} style={styles.postImage} />
+            </TouchableOpacity>
           )}
           showsHorizontalScrollIndicator={false}
         />
@@ -105,17 +108,7 @@ export default function HomeScreen() {
               <Feather name="message-circle" size={28} />
               <Text style={styles.actionCount}>{item.totalComments}</Text>
             </TouchableOpacity>
-
-            {/* Send */}
-            <TouchableOpacity style={styles.actionButton}>
-              <Feather name="send" size={28} />
-            </TouchableOpacity>
           </View>
-
-          {/* Bookmark */}
-          <TouchableOpacity>
-            <Feather name="bookmark" size={28} />
-          </TouchableOpacity>
         </View>
 
         {/* Caption */}
@@ -166,20 +159,12 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <Text style={styles.logo}>Instagram</Text>
         <View style={styles.headerIcons}>
-          <Feather name="heart" size={24} style={styles.headerIcon} />
-          <Feather name="message-circle" size={24} />
+          <Feather
+            onPress={() => router.push("/message")}
+            name="message-circle"
+            size={24}
+          />
         </View>
-      </View>
-
-      {/* Stories */}
-      <View style={styles.storiesContainer}>
-        <FlatList
-          horizontal
-          data={stories}
-          renderItem={renderStory}
-          keyExtractor={(item) => item.id}
-          showsHorizontalScrollIndicator={false}
-        />
       </View>
 
       {/* Posts */}

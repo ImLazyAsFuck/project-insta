@@ -8,6 +8,15 @@ export const fetchBlockedUsers = async (): Promise<
 > => {
   try {
     const res = await axiosInstance.get(`/block`);
+
+    if (!res.data) {
+      throw {
+        message: res.data?.message,
+        error: res.data?.error,
+        status: res.data?.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -17,6 +26,15 @@ export const fetchBlockedUsers = async (): Promise<
 export const blockUser = async (userId: number): Promise<SingleResponse<void>> => {
   try {
     const res = await axiosInstance.post(`/block/${userId}`);
+
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -29,6 +47,15 @@ export const unblockUser = async (
 ): Promise<SingleResponse<void>> => {
   try {
     const res = await axiosInstance.delete(`/block/${userId}`);
+
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);

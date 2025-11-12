@@ -4,6 +4,7 @@ import com.back.model.dto.request.LoginRequest;
 import com.back.model.dto.request.RegisterRequest;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.JWTResponse;
+import com.back.model.dto.response.RegisterErrorResponse;
 import com.back.model.entity.RefreshToken;
 import com.back.model.entity.Role;
 import com.back.model.entity.User;
@@ -15,7 +16,9 @@ import com.back.repository.IUserRepository;
 import com.back.security.jwt.JWTProvider;
 import com.back.security.principal.CustomUserDetails;
 import com.back.service.refreshtoken.IRefreshTokenService;
+import com.back.utils.exception.CustomRegisterException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,6 +31,8 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -79,17 +84,20 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     public APIResponse<JWTResponse> register(RegisterRequest dto) {
+        List<RegisterErrorResponse> errors = new ArrayList<>();
 
-        if(userRepository.existsByUsername(dto.getUsername())){
-            throw new DataIntegrityViolationException("Tên người dùng đã tồn tại");
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            errors.add(new RegisterErrorResponse("username", "Tên người dùng đã tồn tại"));
         }
-
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new DataIntegrityViolationException("Email đã tồn tại");
+            errors.add(new RegisterErrorResponse("email", "Email đã tồn tại"));
+        }
+        if (userRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
+            errors.add(new RegisterErrorResponse("phoneNumber", "Số điện thoại đã tồn tại"));
         }
 
-        if(userRepository.existsByPhoneNumber(dto.getPhoneNumber())){
-            throw new DataIntegrityViolationException("Số điện thoại đã tồn tại");
+        if (!errors.isEmpty()) {
+            throw new CustomRegisterException(errors);
         }
 
         Role role = roleRepository.findByName(ERoleName.ROLE_USER);
@@ -126,6 +134,8 @@ public class AuthServiceImpl implements IAuthService {
                 .status(HttpStatus.CREATED.value())
                 .build();
     }
+
+
 
     @Override
     public APIResponse<JWTResponse> refreshToken(String refreshToken) {
@@ -165,6 +175,7 @@ public class AuthServiceImpl implements IAuthService {
         return APIResponse.<Void>builder()
                 .message("Đăng xuất thành công")
                 .status(HttpStatus.NO_CONTENT.value())
+                .data(null)
                 .build();
     }
 }

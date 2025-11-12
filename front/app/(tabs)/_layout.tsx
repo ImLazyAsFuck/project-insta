@@ -1,3 +1,4 @@
+import { useAuthGuard } from "@/utils/use-auth-guard";
 import {
   Feather,
   FontAwesome,
@@ -6,7 +7,6 @@ import {
 } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
-import { useAuthGuard } from "@/utils/use-auth-guard";
 
 export default function TabLayout() {
   useAuthGuard();
@@ -38,7 +38,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="post"
+        name="add-post"
         options={{
           title: "",
 
@@ -48,13 +48,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="like"
+        name="notification"
         options={{
           title: "",
           tabBarIcon: ({ color }) => {
             return (
               <FontAwesome name="heart-o" size={24} color={color} />
-              // <FontAwesome name="heart" size={24} color="black" />
             );
           },
         }}

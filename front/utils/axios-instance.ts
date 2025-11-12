@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { router } from "expo-router";
 
-const BASE_URL = "http://192.168.1.12:8080/api/v1";
+const BASE_URL = "http://192.168.1.13:8080/api/v1";
 
 
 export const axiosInstance = axios.create({
@@ -39,8 +39,6 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   async (err) => {
     const original = err.config;
-    // Skip token refresh for auth endpoints (login, register)
-    // These endpoints don't need token refresh and their 401 errors should be handled normally
     const isAuthEndpoint =
       original.url?.includes("/auths/login") ||
       original.url?.includes("/auths/register") ||

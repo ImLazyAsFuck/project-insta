@@ -19,6 +19,14 @@ export const createPost = async (
       headers: { "Content-Type": "multipart/form-data" },
     });
 
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -30,6 +38,15 @@ export const togglePostReaction = async (
 ): Promise<SingleResponse<void>> => {
   try {
     const res = await axiosInstance.post(`/posts/${postId}/reaction`);
+
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -39,6 +56,15 @@ export const togglePostReaction = async (
 export const fetchOwnPosts = async (): Promise<BaseResponse<PostResponse>> => {
   try {
     const res = await axiosInstance.get("/posts/me");
+
+    if (!res.data) {
+      throw {
+        message: res.data?.message,
+        error: res.data?.error,
+        status: res.data?.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -48,6 +74,15 @@ export const fetchOwnPosts = async (): Promise<BaseResponse<PostResponse>> => {
 export const fetchFeeds = async (): Promise<BaseResponse<PostResponse>> => {
   try {
     const res = await axiosInstance.get("/posts/feeds");
+
+    if (!res.data) {
+      throw {
+        message: res.data?.message,
+        error: res.data?.error,
+        status: res.data?.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -59,6 +94,15 @@ export const fetchOtherPosts = async (
 ): Promise<BaseResponse<PostResponse>> => {
   try {
     const res = await axiosInstance.get(`/posts/other/${userId}`);
+
+    if (!res.data) {
+      throw {
+        message: res.data?.message,
+        error: res.data?.error,
+        status: res.data?.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -70,6 +114,15 @@ export const fetchPostDetail = async (
 ): Promise<SingleResponse<PostResponse>> => {
   try {
     const res = await axiosInstance.get(`/posts/${postId}`);
+
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);

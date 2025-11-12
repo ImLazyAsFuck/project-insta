@@ -8,6 +8,15 @@ export const searchUsersByUsername = async (
 ): Promise<BaseResponse<ProfileResponse>> => {
   try {
     const res = await axiosInstance.get(`/users/search?username=${username}`);
+
+    if (!res.data) {
+      throw {
+        message: res.data?.message,
+        error: res.data?.error,
+        status: res.data?.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -19,6 +28,15 @@ export const getProfileByUsername = async (
 ): Promise<SingleResponse<ProfileResponse>> => {
   try {
     const res = await axiosInstance.get(`/users/profile/${username}`);
+
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);

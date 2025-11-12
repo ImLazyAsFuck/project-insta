@@ -1,8 +1,10 @@
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { useLogoutMutation } from "@/hooks/useAuth";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
-  Animated,
   Alert,
+  Animated,
   Dimensions,
   Modal,
   StyleSheet,
@@ -10,8 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useLogoutMutation } from "@/hooks/useAuth";
-import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -27,11 +27,24 @@ export default function ProfileMenu({
   const router = useRouter();
 
   React.useEffect(() => {
-    Animated.timing(slideAnim, {
-      toValue: visible ? 0 : width,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
+    if (visible) {
+      // Reset giá trị về vị trí ban đầu trước khi animate
+      slideAnim.setValue(width);
+      // Sử dụng requestAnimationFrame để đảm bảo render xong trước khi animate
+      requestAnimationFrame(() => {
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }).start();
+      });
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: width,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
   }, [visible]);
 
   const handleLogout = () => {
@@ -48,7 +61,7 @@ export default function ProfileMenu({
   const goToFollowRequests = () => {
     onClose();
     setTimeout(() => {
-      router.push("/(tabs)/profile/follow-requests");
+      router.push("/(tabs)/notification/follow-request");
     }, 200);
   };
 
@@ -61,9 +74,16 @@ export default function ProfileMenu({
 
   return (
     <Modal transparent visible={visible} animationType="fade">
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
+      <TouchableOpacity
+        style={styles.overlay}
+        activeOpacity={1}
+        onPress={onClose}
+      >
         <Animated.View
-          style={[styles.menuContainer, { transform: [{ translateX: slideAnim }] }]}
+          style={[
+            styles.menuContainer,
+            { transform: [{ translateX: slideAnim }] },
+          ]}
         >
           <View style={styles.header}>
             <Text style={styles.username}>s.khasanov_</Text>
@@ -74,11 +94,6 @@ export default function ProfileMenu({
               <Ionicons name="chatbubble-outline" size={22} color="#000" />
               <Text style={styles.menuText}>Messages</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem} onPress={goToFollowRequests}>
-              <Ionicons name="person-outline" size={22} color="#000" />
-              <Text style={styles.menuText}>Friend Requests</Text>
-            </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={[styles.menuItem, styles.setting]}>
@@ -86,7 +101,10 @@ export default function ProfileMenu({
             <Text style={styles.menuText}>Settings</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, styles.logout]} onPress={handleLogout}>
+          <TouchableOpacity
+            style={[styles.menuItem, styles.logout]}
+            onPress={handleLogout}
+          >
             <Ionicons name="log-out-outline" size={22} color="#e74c3c" />
             <Text style={[styles.menuText, { color: "#e74c3c" }]}>Log out</Text>
           </TouchableOpacity>

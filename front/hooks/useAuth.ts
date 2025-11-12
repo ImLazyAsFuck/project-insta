@@ -5,6 +5,7 @@ import {
 } from "@/interfaces/auth.interface";
 import { login, logout, register } from "@/services/auth.service";
 import { SingleResponse } from "@/utils/response-data";
+import { ErrorResponse } from "@/utils/error-response";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -15,9 +16,16 @@ const PROFILE_KEY = ["auth"];
 export const useLoginMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<SingleResponse<JWTResponse>, Error, LoginRequest>({
+  return useMutation<SingleResponse<JWTResponse>, ErrorResponse, LoginRequest>({
     mutationFn: login,
     onSuccess: async (res) => {
+      if (!res?.data) {
+        throw {
+          message: "Invalid response from server",
+          error: "Response Error",
+          status: 500,
+        } as ErrorResponse;
+      }
       const { accessToken, refreshToken } = res.data;
       await AsyncStorage.setItem("ACCESS_TOKEN", accessToken);
       await AsyncStorage.setItem("REFRESH_TOKEN", refreshToken);
@@ -32,9 +40,16 @@ export const useLoginMutation = () => {
 export const useRegisterMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<SingleResponse<JWTResponse>, Error, RegisterRequest>({
+  return useMutation<SingleResponse<JWTResponse>, ErrorResponse, RegisterRequest>({
     mutationFn: register,
     onSuccess: async (res) => {
+      if (!res?.data) {
+        throw {
+          message: "Invalid response from server",
+          error: "Response Error",
+          status: 500,
+        } as ErrorResponse;
+      }
       const { accessToken, refreshToken } = res.data;
       await AsyncStorage.setItem("ACCESS_TOKEN", accessToken);
       await AsyncStorage.setItem("REFRESH_TOKEN", refreshToken);
@@ -43,16 +58,13 @@ export const useRegisterMutation = () => {
 
       router.replace("/(tabs)/feed");
     },
-    onError: (err) => {
-      Alert.alert("Đăng ký thất bại:", err.message);
-    },
   });
 };
 
 export const useLogoutMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<SingleResponse<JWTResponse>, ErrorResponse, void>({
     mutationFn: logout,
     onSuccess: async () => {
       await AsyncStorage.removeItem("ACCESS_TOKEN");
@@ -63,7 +75,7 @@ export const useLogoutMutation = () => {
       router.replace("/(auth)/login");
     },
     onError: (err) => {
-      Alert.alert("Đăng xuất thất bại:", (err as Error).message);
+      Alert.alert("Đăng xuất thất bại:", err.message);
     },
   });
 };

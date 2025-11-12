@@ -1,11 +1,22 @@
 import { EReactionType } from "@/types/reaction.enum";
 import { UserSummaryResponse } from "./user.interface";
 
+export type MessageAttachment = {
+  uri: string;
+  name: string;
+  type: string;
+};
+
 export interface MessageRequest {
   conversationId: number;
-  content?: string | null;
-  files?: File[];
   senderId: number;
+  content?: string | null;
+}
+
+export interface MessageMediaRequest {
+  conversationId: number;
+  senderId: number;
+  mediaFiles: MessageAttachment[];
 }
 
 export interface MessageReactionResponse {
@@ -24,3 +35,4 @@ export interface MessageResponse {
   createdAt: string;
   reactions: MessageReactionResponse[];
 }
+

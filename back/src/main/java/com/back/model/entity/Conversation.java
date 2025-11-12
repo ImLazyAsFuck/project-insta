@@ -19,12 +19,16 @@ public class Conversation {
 
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private boolean isGroup;
+
     @ManyToMany
     @JoinTable(
         name = "conversation_users",
         joinColumns = @JoinColumn(name = "conversation_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
+
     private List<User> participants;
 
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -11,9 +11,9 @@ import {
 } from "@/hooks/usePost";
 import { CommentResponse } from "@/interfaces/comment.interface";
 import { Feather } from "@expo/vector-icons";
-import { useRoute } from "@react-navigation/native";
 import { ResizeMode, Video } from "expo-av";
-import React, { useMemo, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Image,
@@ -26,10 +26,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export const PostDetailScreen = () => {
-  const route = useRoute<any>();
-  const postId = route.params?.postId;
+export default function PostDetailScreen() {
+  const router = useRouter();
+  const postIdParam = useLocalSearchParams<{ id?: string }>().id;
+  const postId = Number(postIdParam);
 
   const { data: postDetail } = usePostDetailQuery(postId);
   const { data: commentsData } = useCommentsByPostQuery(postId);
@@ -45,31 +47,78 @@ export const PostDetailScreen = () => {
   const comments = useMemo(() => {
     if (!commentsData?.data) return [];
 
+    const childIds = new Set<number>();
+    commentsData.data.forEach((c) => {
+      if (c.parentId) {
+        childIds.add(c.id);
+      }
+    });
+
+    const rootComments = commentsData.data.filter((c) => !c.parentId);
+    const hasNestedStructure = rootComments.some(
+      (c) => c.childComments && c.childComments.length > 0
+    );
+
+    if (hasNestedStructure && childIds.size === 0) {
+      return rootComments;
+    }
+
     const map = new Map<
       number,
       CommentResponse & { childComments: CommentResponse[] }
     >();
-    commentsData.data.forEach((c) =>
-      map.set(c.id, { ...c, childComments: [] })
-    );
+
+    commentsData.data.forEach((c) => {
+      if (c.parentId) {
+        map.set(c.id, { ...c, childComments: [] });
+      } else {
+        map.set(c.id, { ...c, childComments: c.childComments || [] });
+      }
+    });
 
     const roots: (CommentResponse & { childComments: CommentResponse[] })[] =
       [];
+
     commentsData.data.forEach((c) => {
       if (c.parentId && map.has(c.parentId)) {
-        map.get(c.parentId)!.childComments.push(map.get(c.id)!);
-      } else roots.push(map.get(c.id)!);
+        const parent = map.get(c.parentId)!;
+        const childComment = map.get(c.id)!;
+        if (!parent.childComments.some((child) => child.id === childComment.id)) {
+          parent.childComments.push(childComment);
+        }
+      } else if (!c.parentId) {
+        if (!roots.some((root) => root.id === c.id)) {
+          roots.push(map.get(c.id)!);
+        }
+      }
     });
 
     return roots;
   }, [commentsData]);
 
   const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState<{
+    commentId: number;
+    username: string;
+  } | null>(null);
+  const inputRef = useRef<TextInput>(null);
 
   const handleAddComment = (parentId?: number | null) => {
     if (!newComment.trim()) return;
     createComment.mutate({ content: newComment, postId, parentId });
     setNewComment("");
+    setReplyingTo(null);
+  };
+
+  const handleReplyClick = (commentId: number, username: string) => {
+    setReplyingTo({ commentId, username });
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
   };
 
   const handleTogglePostReaction = () => {
@@ -118,6 +167,9 @@ export const PostDetailScreen = () => {
             />
             <Text style={styles.reactionCount}>{reply.reactionCount}</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleReplyClick(reply.id, reply.user.username)}>
+            <Text style={styles.replyText}>Trả lời</Text>
+          </TouchableOpacity>
           {reply.user.username === currentUser?.username && (
             <TouchableOpacity
               onPress={() =>
@@ -159,7 +211,7 @@ export const PostDetailScreen = () => {
             />
             <Text style={styles.reactionCount}>{item.reactionCount}</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleAddComment(item.id)}>
+          <TouchableOpacity onPress={() => handleReplyClick(item.id, item.user.username)}>
             <Text style={styles.replyText}>Trả lời</Text>
           </TouchableOpacity>
           {item.user.username === currentUser?.username && (
@@ -178,83 +230,130 @@ export const PostDetailScreen = () => {
     </View>
   );
 
+  if (!postIdParam || Number.isNaN(postId)) {
+    return <Text style={{ padding: 20 }}>Không tìm thấy bài viết.</Text>;
+  }
+
   if (!post) return <Text style={{ padding: 20 }}>Đang tải...</Text>;
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#fff" }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView>
-        <View style={styles.postHeader}>
-          <Image source={{ uri: post.user.avatarUrl }} style={styles.avatar} />
-          <Text style={styles.username}>{post.user.username}</Text>
-        </View>
-
-        {post.mediaList[0]?.type === "IMAGE" ? (
-          <Image
-            source={{ uri: post.mediaList[0].url }}
-            style={styles.postImage}
-          />
-        ) : (
-          <Video
-            source={{ uri: post.mediaList[0].url }}
-            style={styles.postImage}
-            resizeMode={ResizeMode.COVER}
-            useNativeControls
-          />
-        )}
-
-        <View style={styles.postActions}>
-          <TouchableOpacity onPress={handleTogglePostReaction}>
-            <Feather
-              name="heart"
-              size={24}
-              color={post.reactedByCurrentUser ? "red" : "black"}
-            />
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: "#fff" }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Feather name="arrow-left" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.reactionCountText}>
-            {post.totalReactions} lượt thích
-          </Text>
+          <Text style={styles.headerTitle}>Bài viết</Text>
+          <View style={{ width: 24 }} />
         </View>
+        <ScrollView>
+          <View style={styles.postHeader}>
+            <Image
+              source={{ uri: post.user.avatarUrl }}
+              style={styles.avatar}
+            />
+            <Text style={styles.username}>{post.user.username}</Text>
+          </View>
 
-        <View style={styles.captionContainer}>
-          <Text style={styles.captionUsername}>{post.user.username}</Text>
-          <Text style={styles.captionText}>{post.content}</Text>
+          {post.mediaList[0]?.type === "IMAGE" ? (
+            <Image
+              source={{ uri: post.mediaList[0].url }}
+              style={styles.postImage}
+            />
+          ) : (
+            <Video
+              source={{ uri: post.mediaList[0].url }}
+              style={styles.postImage}
+              resizeMode={ResizeMode.COVER}
+              useNativeControls
+            />
+          )}
+
+          <View style={styles.postActions}>
+            <TouchableOpacity onPress={handleTogglePostReaction}>
+              <Feather
+                name="heart"
+                size={24}
+                color={post.reactedByCurrentUser ? "red" : "black"}
+              />
+            </TouchableOpacity>
+            <Text style={styles.reactionCountText}>
+              {post.totalReactions} lượt thích
+            </Text>
+          </View>
+
+          <View style={styles.captionContainer}>
+            <Text style={styles.captionUsername}>{post.user.username}</Text>
+            <Text style={styles.captionText}>{post.content}</Text>
+          </View>
+
+          <FlatList
+            data={comments}
+            renderItem={renderComment}
+            keyExtractor={(item) => item.id.toString()}
+            scrollEnabled={false}
+            ListHeaderComponent={
+              <Text style={styles.commentHeader}>Bình luận</Text>
+            }
+            contentContainerStyle={{ paddingBottom: 80 }}
+          />
+        </ScrollView>
+
+        <View style={styles.inputContainer}>
+          {replyingTo && (
+            <View style={styles.replyIndicator}>
+              <Text style={styles.replyIndicatorText}>
+                Trả lời {replyingTo.username}
+              </Text>
+              <TouchableOpacity onPress={handleCancelReply}>
+                <Feather name="x" size={16} color="#666" />
+              </TouchableOpacity>
+            </View>
+          )}
+          <View style={styles.inputRow}>
+            <Image
+              source={{ uri: currentUser?.avatarUrl }}
+              style={styles.inputAvatar}
+            />
+            <TextInput
+              ref={inputRef}
+              style={styles.input}
+              placeholder={
+                replyingTo
+                  ? `Trả lời ${replyingTo.username}...`
+                  : "Thêm bình luận..."
+              }
+              value={newComment}
+              onChangeText={setNewComment}
+            />
+            <TouchableOpacity onPress={() => handleAddComment(replyingTo?.commentId)}>
+              <Feather name="send" size={22} color="#007AFF" />
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <FlatList
-          data={comments}
-          renderItem={renderComment}
-          keyExtractor={(item) => item.id.toString()}
-          scrollEnabled={false}
-          ListHeaderComponent={
-            <Text style={styles.commentHeader}>Bình luận</Text>
-          }
-          contentContainerStyle={{ paddingBottom: 80 }}
-        />
-      </ScrollView>
-
-      <View style={styles.inputRow}>
-        <Image
-          source={{ uri: currentUser?.avatarUrl }}
-          style={styles.inputAvatar}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Thêm bình luận..."
-          value={newComment}
-          onChangeText={setNewComment}
-        />
-        <TouchableOpacity onPress={() => handleAddComment()}>
-          <Feather name="send" size={22} color="#007AFF" />
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#eee",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000",
+  },
   postHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -284,6 +383,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingVertical: 8,
     paddingLeft: 50,
+    paddingRight: 10,
+    marginTop: 4,
+    borderRadius: 8,
+    marginLeft: 10,
+    marginRight: 10,
   },
   commentAvatar: { width: 30, height: 30, borderRadius: 15, marginRight: 8 },
   commentUsername: { fontWeight: "bold" },
@@ -296,14 +400,31 @@ const styles = StyleSheet.create({
   replyText: { marginLeft: 10, color: "#007AFF", fontSize: 12 },
   deleteText: { marginLeft: 10, color: "red", fontSize: 12 },
 
+  inputContainer: {
+    borderTopWidth: 0.5,
+    borderTopColor: "#ccc",
+    backgroundColor: "#fff",
+  },
+  replyIndicator: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    backgroundColor: "#f5f5f5",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ddd",
+  },
+  replyIndicatorText: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "500",
+  },
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 8,
-    borderTopWidth: 0.5,
-    borderTopColor: "#ccc",
-    backgroundColor: "#fff",
   },
   inputAvatar: { width: 32, height: 32, borderRadius: 16, marginRight: 8 },
   input: {

@@ -4,7 +4,7 @@ import {
   ProfileResponse,
 } from "@/interfaces/profile.interface";
 import { axiosInstance } from "@/utils/axios-instance";
-import { BaseResponse, SingleResponse } from "@/utils/response-data";
+import { SingleResponse } from "@/utils/response-data";
 import { handleAxiosError } from "./error.service";
 
 export const getProfile = async (): Promise<
@@ -12,6 +12,15 @@ export const getProfile = async (): Promise<
 > => {
   try {
     const res = await axiosInstance.get("/accounts/profile");
+
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -26,6 +35,15 @@ export const changePassword = async (
       "/accounts/change-password",
       changePassword
     );
+
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -49,6 +67,15 @@ export const updateProfile = async (
     const res = await axiosInstance.put("/accounts/profile", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -73,9 +100,16 @@ export const uploadAvatar = async (
       },
     });
 
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
   }
 };
-

@@ -7,7 +7,7 @@ import {
 } from "@/hooks/useComment";
 import { CommentResponse } from "@/interfaces/comment.interface";
 import { Feather } from "@expo/vector-icons";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Image,
@@ -40,27 +40,69 @@ export const CommentModal = ({
 
   const currentUser = profileData?.data;
   const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState<{
+    commentId: number;
+    username: string;
+  } | null>(null);
+  const inputRef = useRef<TextInput>(null);
 
   const comments = useMemo(() => {
     if (!data?.data) return [];
 
+    // Build a set of all comment IDs that are children (have parentId)
+    const childIds = new Set<number>();
+    data.data.forEach((c) => {
+      if (c.parentId) {
+        childIds.add(c.id);
+      }
+    });
+
+    // If there are no child comments, API might return nested structure
+    // Check if any root comment has childComments populated
+    const rootComments = data.data.filter((c) => !c.parentId);
+    const hasNestedStructure = rootComments.some(
+      (c) => c.childComments && c.childComments.length > 0
+    );
+
+    if (hasNestedStructure && childIds.size === 0) {
+      // API returns nested structure and no flat children, use as is
+      return rootComments;
+    }
+
+    // API returns flat list (or mixed), build tree structure
     const map = new Map<
       number,
       CommentResponse & { childComments: CommentResponse[] }
     >();
+    
+    // First pass: create map with all comments, preserve existing childComments if any
     data.data.forEach((c) => {
-      map.set(c.id, { ...c, childComments: [] });
+      // If this comment is a child (has parentId), don't include its childComments
+      // as they might be duplicates from nested structure
+      if (c.parentId) {
+        map.set(c.id, { ...c, childComments: [] });
+      } else {
+        map.set(c.id, { ...c, childComments: c.childComments || [] });
+      }
     });
 
     const roots: (CommentResponse & { childComments: CommentResponse[] })[] =
       [];
 
+    // Second pass: build tree structure from flat list
     data.data.forEach((c) => {
       if (c.parentId && map.has(c.parentId)) {
         const parent = map.get(c.parentId)!;
-        parent.childComments.push(map.get(c.id)!);
-      } else {
-        roots.push(map.get(c.id)!);
+        const childComment = map.get(c.id)!;
+        // Only add if not already in parent's childComments
+        if (!parent.childComments.some((child) => child.id === childComment.id)) {
+          parent.childComments.push(childComment);
+        }
+      } else if (!c.parentId) {
+        // Only add to roots if not already there
+        if (!roots.some((root) => root.id === c.id)) {
+          roots.push(map.get(c.id)!);
+        }
       }
     });
 
@@ -71,6 +113,19 @@ export const CommentModal = ({
     if (!newComment.trim() || !currentUser) return;
     createComment.mutate({ content: newComment, postId, parentId });
     setNewComment("");
+    setReplyingTo(null);
+  };
+
+  const handleReplyClick = (commentId: number, username: string) => {
+    setReplyingTo({ commentId, username });
+    // Focus the input after a short delay to ensure the modal is ready
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
   };
 
   const CommentText = ({ text }: { text: string }) => {
@@ -116,6 +171,9 @@ export const CommentModal = ({
             />
             <Text style={styles.reactionCount}>{reply.reactionCount}</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleReplyClick(reply.id, reply.user.username)}>
+            <Text style={styles.replyText}>Trả lời</Text>
+          </TouchableOpacity>
           {reply.user.username === currentUser?.username && (
             <TouchableOpacity
               onPress={() =>
@@ -158,7 +216,7 @@ export const CommentModal = ({
               />
               <Text style={styles.reactionCount}>{item.reactionCount}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleAddComment(item.id)}>
+            <TouchableOpacity onPress={() => handleReplyClick(item.id, item.user.username)}>
               <Text style={styles.replyText}>Trả lời</Text>
             </TouchableOpacity>
             {item.user.username === currentUser?.username && (
@@ -179,12 +237,19 @@ export const CommentModal = ({
     );
   };
 
+  const handleClose = () => {
+    setReplyingTo(null);
+    setNewComment("");
+    onClose();
+  };
+
+  if (!visible) return null;
+
   return (
     <Modal
-      style={{ padding: 10 }}
       animationType="slide"
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -192,7 +257,7 @@ export const CommentModal = ({
       >
         <View style={styles.header}>
           <Text style={styles.headerText}>Comments</Text>
-          <TouchableOpacity onPress={onClose}>
+          <TouchableOpacity onPress={handleClose}>
             <Text style={styles.closeText}>X</Text>
           </TouchableOpacity>
         </View>
@@ -205,22 +270,35 @@ export const CommentModal = ({
         />
 
         {currentUser && (
-          <View style={styles.inputRow}>
-            <Image
-              source={{ uri: currentUser.avatarUrl }}
-              style={styles.inputAvatar}
-            />
-            <View style={{ flex: 1 }}>
-              <TextInput
-                style={styles.input}
-                placeholder="Add a comment..."
-                value={newComment}
-                onChangeText={setNewComment}
+          <View style={styles.inputContainer}>
+            {replyingTo && (
+              <View style={styles.replyIndicator}>
+                <Text style={styles.replyIndicatorText}>
+                  Trả lời {replyingTo.username}
+                </Text>
+                <TouchableOpacity onPress={handleCancelReply}>
+                  <Feather name="x" size={16} color="#666" />
+                </TouchableOpacity>
+              </View>
+            )}
+            <View style={styles.inputRow}>
+              <Image
+                source={{ uri: currentUser.avatarUrl }}
+                style={styles.inputAvatar}
               />
+              <View style={{ flex: 1 }}>
+                <TextInput
+                  ref={inputRef}
+                  style={styles.input}
+                  placeholder={replyingTo ? `Trả lời ${replyingTo.username}...` : "Add a comment..."}
+                  value={newComment}
+                  onChangeText={setNewComment}
+                />
+              </View>
+              <TouchableOpacity onPress={() => handleAddComment(replyingTo?.commentId)}>
+                <Feather name="send" size={24} color="#007AFF" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={() => handleAddComment()}>
-              <Feather name="send" size={24} color="#007AFF" />
-            </TouchableOpacity>
           </View>
         )}
       </KeyboardAvoidingView>
@@ -253,7 +331,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingVertical: 8,
     paddingLeft: 50,
+    paddingRight: 10,
     alignItems: "flex-start",
+    marginTop: 4,
+    borderRadius: 8,
+    marginLeft: 10,
+    marginRight: 10,
   },
   commentAvatar: { width: 32, height: 32, borderRadius: 16, marginRight: 10 },
   commentUsername: { fontWeight: "bold", marginBottom: 2 },
@@ -264,18 +347,35 @@ const styles = StyleSheet.create({
   deleteText: { marginLeft: 15, color: "red", fontSize: 12 },
   replyText: { marginLeft: 15, color: "#007AFF", fontSize: 12 },
 
-  inputRow: {
+  inputContainer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
+    backgroundColor: "#fff",
+    borderTopWidth: 0.5,
+    borderTopColor: "#ccc",
+  },
+  replyIndicator: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    backgroundColor: "#f5f5f5",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ddd",
+  },
+  replyIndicatorText: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "500",
+  },
+  inputRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderTopWidth: 0.5,
-    borderTopColor: "#ccc",
-    backgroundColor: "#fff",
   },
   inputAvatar: { width: 32, height: 32, borderRadius: 16, marginRight: 10 },
   input: {

@@ -1,6 +1,6 @@
 package com.back.security.config;
 
-import com.back.utils.exception.ErrorResponse;
+import com.back.model.dto.response.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.jsonwebtoken.ExpiredJwtException;

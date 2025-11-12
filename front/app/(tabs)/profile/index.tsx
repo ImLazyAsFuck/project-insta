@@ -1,8 +1,10 @@
 import { useProfileQuery } from "@/hooks/useAccount";
+import { useFollowingsQuery } from "@/hooks/useFollow";
 import { useOwnPostsQuery } from "@/hooks/usePost";
+import { ProfileResponse } from "@/interfaces/profile.interface";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   FlatList,
   Image,
@@ -23,28 +25,24 @@ export default function ProfileScreen() {
   const { data: postsData, isLoading } = useOwnPostsQuery();
   const posts = postsData?.data || [];
 
-  const highlights = [
-    {
-      id: 1,
-      title: "New",
-      uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg",
-    },
-    {
-      id: 2,
-      title: "Friends",
-      uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg",
-    },
-    {
-      id: 3,
-      title: "Sport",
-      uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg",
-    },
-    {
-      id: 4,
-      title: "Design",
-      uri: "https://photo.znews.vn/w660/Uploaded/mdf_eioxrd/2021_07_06/2.jpg",
-    },
-  ];
+  const { data: followingsData, isLoading: isFollowingsLoading } =
+    useFollowingsQuery();
+
+  const followings = useMemo(() => {
+    const list =
+      (followingsData?.data as (ProfileResponse & {
+        createdAt?: string;
+      })[]) || [];
+
+    return [...list].sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      if (aTime === bTime) {
+        return (b.id || 0) - (a.id || 0);
+      }
+      return bTime - aTime;
+    });
+  }, [followingsData]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -66,9 +64,13 @@ export default function ProfileScreen() {
 
       <ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
         {/* Profile Info */}
-        <View style={{ flexDirection: "row", alignItems: "center", padding: 20 }}>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", padding: 20 }}
+        >
           <Image
-            source={{ uri: profile?.avatarUrl || "https://placehold.co/120x120" }}
+            source={{
+              uri: profile?.avatarUrl || "https://placehold.co/120x120",
+            }}
             style={{ width: 80, height: 80, borderRadius: 40 }}
           />
           <View
@@ -135,37 +137,49 @@ export default function ProfileScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{ marginVertical: 20, paddingLeft: 20 }}
-        >
-          {highlights.map((item) => (
-            <View key={item.id} style={{ alignItems: "center", marginRight: 15 }}>
-              <Image
-                source={{ uri: item.uri }}
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  borderWidth: 1,
-                  borderColor: "#ddd",
-                }}
-              />
-              <Text style={{ fontSize: 12, marginTop: 4 }}>{item.title}</Text>
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* Tabs */}
-        <View
           style={{
-            flexDirection: "row",
-            justifyContent: "space-around",
-            borderTopWidth: 0.5,
-            borderColor: "#ddd",
+            marginVertical: 20,
+            paddingLeft: 20,
+            paddingBottom: 10,
+            borderBottomWidth: 0.5,
+            borderBottomColor: "#ddd",
           }}
         >
-          <Ionicons name="grid-outline" size={28} />
-          <Ionicons name="person-outline" size={28} />
-        </View>
+          {isFollowingsLoading ? (
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
+              <Text>Đang tải bạn bè...</Text>
+            </View>
+          ) : followings.length ? (
+            followings.map((user) => (
+              <TouchableOpacity
+                key={user.id}
+                style={{ alignItems: "center", marginRight: 15 }}
+                onPress={() => router.push(`/user/${user.username}`)}
+                activeOpacity={0.8}
+              >
+                <Image
+                  source={{
+                    uri: user.avatarUrl || "https://placehold.co/120x120",
+                  }}
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    borderWidth: 1,
+                    borderColor: "#ddd",
+                  }}
+                />
+                <Text style={{ fontSize: 12, marginTop: 4 }} numberOfLines={1}>
+                  {user.fullName || user.username}
+                </Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
+              <Text>Chưa có bạn bè nào</Text>
+            </View>
+          )}
+        </ScrollView>
 
         {/* Grid Posts from API */}
         {isLoading ? (
@@ -176,11 +190,19 @@ export default function ProfileScreen() {
             keyExtractor={(item) => item.id.toString()}
             numColumns={3}
             scrollEnabled={false}
-            columnWrapperStyle={{ justifyContent: "space-between", marginBottom: 2 }}
+            columnWrapperStyle={{
+              marginBottom: 2,
+            }}
             renderItem={({ item }) => (
               <TouchableOpacity
                 activeOpacity={0.8}
                 style={{ flex: 1 / 3, margin: 1 }}
+                onPress={() =>
+                  router.push({
+                    pathname: "/post/[id]",
+                    params: { id: item.id.toString() },
+                  })
+                }
               >
                 {item.mediaList?.[0]?.url ? (
                   <Image
@@ -204,7 +226,10 @@ export default function ProfileScreen() {
         )}
       </ScrollView>
 
-      <ProfileMenu visible={menuVisible} onClose={() => setMenuVisible(false)} />
+      <ProfileMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+      />
     </SafeAreaView>
   );
 }

@@ -1,154 +1,127 @@
-import { useAuthGuard } from "@/utils/use-auth-guard";
-import React, { useState } from "react";
+import { useProfileQuery } from "@/hooks/useAccount";
+import { useMyConversationsQuery } from "@/hooks/useChat";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useMyMessagesQuery } from "@/hooks/useChat";
-import { useAuth } from "@/contexts/AuthContext";
-import { router } from "expo-router";
+
+type RenderedMessage = {
+  id: number;
+  name: string;
+  avatar: string;
+  message: string;
+  time: string;
+};
 
 export default function Messages() {
-  useAuthGuard();
-  const { user } = useAuth();
-  const { data, isLoading, isError, refetch } = useMyMessagesQuery();
-  const [search, setSearch] = useState("");
+  const { data: profile } = useProfileQuery();
+  const { data: conversations, isLoading } = useMyConversationsQuery();
+  const router = useRouter();
 
-  const messages = (data?.data || []).filter((item) => {
-    const partner =
-      item.sender?.id === user?.id ? item.receiver : item.sender;
-    return partner?.username?.toLowerCase().includes(search.toLowerCase());
-  });
+  const [conversationData, setConversationData] = useState<
+    RenderedMessage[] | undefined
+  >([]);
 
-  const renderItem = ({ item }) => {
-    const partner =
-      item.sender?.id === user?.id ? item.receiver : item.sender;
+  useEffect(() => {
+    if (conversations?.data) {
+      const mapped: RenderedMessage[] = conversations.data.map((conv) => {
+        const lastMessage = conv.messages?.[conv.messages.length - 1];
+        console.log(conversations.data);
+        
+        const isGroup = conv.group;
+        const meId = profile?.data?.id;
+        const otherUser =
+          conv.users?.find((u) => u.id !== meId) || conv.users?.[0];
 
-    return (
-      <TouchableOpacity
-        style={styles.chatItem}
-        onPress={() =>
-          router.push({
-            pathname: "/message/[id]",
-            params: { id: item.conversationId },
-          })
-        }
-      >
-        <Image
-          source={{
-            uri:
-              partner?.avatarUrl ||
+        console.log(otherUser);
+
+        return {
+          id: conv.id,
+          name: isGroup ? conv.name : otherUser?.fullName || conv.name,
+          avatar: isGroup
+            ? "https://cdn-icons-png.flaticon.com/512/74/74472.png"
+            : otherUser?.avatarUrl ||
               "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-          }}
-          style={styles.avatar}
-        />
+          message:
+            lastMessage?.content ||
+            (lastMessage?.mediaUrls?.length ? "📷 Photo" : "") ||
+            "",
+          time: lastMessage
+            ? new Date(lastMessage.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "",
+        };
+      });
+      setConversationData(mapped);
+    }
+  }, [conversations?.data, profile?.data?.id]);
 
-        <View style={styles.messageInfo}>
-          <View style={styles.nameRow}>
-            <Text style={styles.name}>{partner?.username}</Text>
-            <Text style={styles.time}>{formatTime(item.createdAt)}</Text>
-          </View>
-          <Text style={styles.message} numberOfLines={1}>
-            {item.mediaUrl?.length
-              ? "📷 Photo"
-              : item.content || "No message yet"}
-          </Text>
+  const renderItem = ({ item }: { item: RenderedMessage }) => (
+    <TouchableOpacity
+      style={styles.chatItem}
+      onPress={() => router.push(`/message/${item.id}`)}
+    >
+      <Image source={{ uri: item.avatar }} style={styles.avatar} />
+      <View style={styles.messageInfo}>
+        <View style={styles.nameRow}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.time}>{item.time}</Text>
         </View>
-      </TouchableOpacity>
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </SafeAreaView>
-    );
-  }
-
-  if (isError) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <Text style={{ color: "red", marginBottom: 10 }}>
-          Failed to load messages
+        <Text style={styles.message} numberOfLines={1}>
+          {item.message}
         </Text>
-        <TouchableOpacity onPress={refetch}>
-          <Text style={{ color: "#007AFF" }}>Try again</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backArrow}>{"<"}</Text>
+          <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.username}>Messages</Text>
-        <TouchableOpacity>
-          <Text style={styles.plusIcon}>＋</Text>
+        <TouchableOpacity onPress={() => router.push("/feed")}>
+          <Ionicons name="add-circle-outline" size={24} color="#000" />
         </TouchableOpacity>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Search"
-          placeholderTextColor="#888"
-          value={search}
-          onChangeText={setSearch}
-          style={styles.searchInput}
-        />
       </View>
 
       {/* Messages List */}
-      <FlatList
-        data={messages}
-        keyExtractor={(item) => String(item.conversationId)}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
-      />
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.cameraBtn}>
-          <Text style={styles.cameraButton}>📷 Camera</Text>
-        </TouchableOpacity>
-      </View>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      ) : conversationData?.length ? (
+        <FlatList
+          data={conversationData}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No messages yet</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
-function formatTime(dateString: string) {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  const diff = (Date.now() - date.getTime()) / 1000;
-
-  if (diff < 60) return "now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-
-  const d = date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-  return d;
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -161,18 +134,6 @@ const styles = StyleSheet.create({
   backArrow: { fontSize: 22, color: "#000" },
   username: { fontWeight: "bold", fontSize: 18, color: "#000" },
   plusIcon: { fontSize: 28, color: "#000" },
-
-  searchContainer: {
-    backgroundColor: "#f2f2f2",
-    marginHorizontal: 16,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginTop: 10,
-    marginBottom: 8,
-  },
-  searchInput: { color: "#000", fontSize: 15 },
-
   chatItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -197,7 +158,6 @@ const styles = StyleSheet.create({
   name: { fontWeight: "600", fontSize: 15, color: "#000" },
   message: { color: "#666", fontSize: 13, marginTop: 3 },
   time: { color: "#999", fontSize: 12, marginLeft: 8 },
-
   footer: {
     position: "absolute",
     bottom: 0,
@@ -215,9 +175,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 8,
   },
-  cameraButton: {
-    color: "#007AFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  cameraButton: { color: "#007AFF", fontSize: 16, fontWeight: "600" },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyText: { color: "#888", fontSize: 16 },
 });

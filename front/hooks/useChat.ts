@@ -1,12 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   sendMessage,
+  sendMessageMedia,
   deleteMessage,
   reactMessage,
   getMessagesByConversation,
-  getMyMessages,
+  getMyConversations,
 } from "@/services/chat.service";
+import { ConversationResponse } from "@/interfaces/chat.interface";
 import {
+  MessageMediaRequest,
   MessageRequest,
   MessageResponse,
 } from "@/interfaces/message.interface";
@@ -23,17 +26,21 @@ export const useMessagesQuery = (conversationId: number) => {
   });
 };
 
-export const useMyMessagesQuery = () => {
-  return useQuery<BaseResponse<MessageResponse>, Error>({
+export const useMyConversationsQuery = () => {
+  return useQuery<BaseResponse<ConversationResponse>, Error>({
     queryKey: [...CHAT_KEY, "me"],
-    queryFn: getMyMessages,
+    queryFn: getMyConversations,
   });
 };
 
 export const useSendMessageMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<SingleResponse<MessageResponse>, Error, MessageRequest>({
+  return useMutation<
+    SingleResponse<MessageResponse>,
+    Error,
+    MessageRequest
+  >({
     mutationFn: sendMessage,
     onSuccess: (data) => {
       if (data.data?.conversationId) {
@@ -41,6 +48,27 @@ export const useSendMessageMutation = () => {
           queryKey: [...CHAT_KEY, "conversation", data.data.conversationId],
         });
       }
+      queryClient.invalidateQueries({ queryKey: [...CHAT_KEY, "me"] });
+    },
+  });
+};
+
+export const useSendMessageMediaMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    SingleResponse<MessageResponse>,
+    Error,
+    MessageMediaRequest
+  >({
+    mutationFn: sendMessageMedia,
+    onSuccess: (data) => {
+      if (data.data?.conversationId) {
+        queryClient.invalidateQueries({
+          queryKey: [...CHAT_KEY, "conversation", data.data.conversationId],
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: [...CHAT_KEY, "me"] });
     },
   });
 };

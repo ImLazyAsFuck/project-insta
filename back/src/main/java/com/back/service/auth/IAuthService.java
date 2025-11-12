@@ -4,6 +4,7 @@ import com.back.model.dto.request.LoginRequest;
 import com.back.model.dto.request.RegisterRequest;
 import com.back.model.dto.response.APIResponse;
 import com.back.model.dto.response.JWTResponse;
+import jakarta.validation.constraints.Null;
 
 public interface IAuthService{
     APIResponse<JWTResponse> login(LoginRequest loginRequest);

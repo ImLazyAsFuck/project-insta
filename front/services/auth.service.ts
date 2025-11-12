@@ -12,8 +12,18 @@ export const login = async (
 ): Promise<SingleResponse<JWTResponse>> => {
   try {
     const res = await axiosInstance.post("/auths/login", loginRequest);
+
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
+    
     throw handleAxiosError(error);
   }
 };
@@ -23,6 +33,15 @@ export const register = async (
 ): Promise<SingleResponse<JWTResponse>> => {
   try {
     const res = await axiosInstance.post("/auths/register", registerRequest);
+    
+    if (!res.data || !res.data.data) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
     return res.data;
   } catch (error) {
     throw handleAxiosError(error);
@@ -34,6 +53,7 @@ export const logout = async (): Promise<SingleResponse<JWTResponse>> => {
     const res = await axiosInstance.post("/auths/logout");
     return res.data;
   } catch (error) {
+    
     throw handleAxiosError(error);
   }
 };

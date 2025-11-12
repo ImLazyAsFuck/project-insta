@@ -31,18 +31,24 @@ export default function UnfollowModal({
   // Animation mở / đóng
   useEffect(() => {
     if (visible) {
-      Animated.parallel([
-        Animated.timing(slideY, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.timing(backdropOpacity, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // Reset giá trị về vị trí ban đầu trước khi animate
+      slideY.setValue(height);
+      backdropOpacity.setValue(0);
+      // Sử dụng requestAnimationFrame để đảm bảo render xong trước khi animate
+      requestAnimationFrame(() => {
+        Animated.parallel([
+          Animated.timing(slideY, {
+            toValue: 0,
+            duration: 250,
+            useNativeDriver: true,
+          }),
+          Animated.timing(backdropOpacity, {
+            toValue: 1,
+            duration: 250,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
     } else {
       Animated.parallel([
         Animated.timing(slideY, {
@@ -114,42 +120,47 @@ export default function UnfollowModal({
       animationType="none"
       onRequestClose={onClose}
     >
-      {/* nền mờ */}
-      <Animated.View
-        style={{
-          flex: 1,
-          backgroundColor: "rgba(0,0,0,0.4)",
-          opacity: backdropOpacity,
-        }}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          style={{ flex: 1 }}
-          onPress={onClose}
-        />
-      </Animated.View>
+      <View style={{ flex: 1 }}>
+        {/* nền mờ */}
+        <Animated.View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            opacity: backdropOpacity,
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{ flex: 1 }}
+            onPress={onClose}
+          />
+        </Animated.View>
 
-      {/* bottom sheet */}
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={{
-          position: "absolute",
-          bottom: 0,
-          width: "100%",
-          backgroundColor: "#fff",
-          borderTopLeftRadius: 25,
-          borderTopRightRadius: 25,
-          paddingTop: 8,
-          paddingHorizontal: 20,
-          paddingBottom: 30,
-          transform: [{ translateY: slideY }],
-          shadowColor: "#000",
-          shadowOpacity: 0.1,
-          shadowOffset: { width: 0, height: -3 },
-          shadowRadius: 8,
-          elevation: 5,
-        }}
-      >
+        {/* bottom sheet */}
+        <Animated.View
+          {...panResponder.panHandlers}
+          style={{
+            position: "absolute",
+            bottom: 0,
+            width: "100%",
+            backgroundColor: "#fff",
+            borderTopLeftRadius: 25,
+            borderTopRightRadius: 25,
+            paddingTop: 8,
+            paddingHorizontal: 20,
+            paddingBottom: 30,
+            transform: [{ translateY: slideY }],
+            shadowColor: "#000",
+            shadowOpacity: 0.1,
+            shadowOffset: { width: 0, height: -3 },
+            shadowRadius: 8,
+            elevation: 5,
+          }}
+        >
         {/* thanh kéo */}
         <View
           style={{
@@ -208,6 +219,7 @@ export default function UnfollowModal({
           <Text style={{ textAlign: "center", fontSize: 16 }}>Đóng</Text>
         </TouchableOpacity>
       </Animated.View>
+      </View>
     </Modal>
   );
 }

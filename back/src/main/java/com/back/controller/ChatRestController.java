@@ -1,10 +1,11 @@
 package com.back.controller;
 
 import com.back.model.dto.request.MessageRequest;
-import com.back.model.dto.response.APIResponse;
-import com.back.model.dto.response.MessageResponse;
+import com.back.model.dto.request.MessageMediaRequest;
+import com.back.model.dto.response.*;
 import com.back.model.enums.EReactionType;
 import com.back.service.chat.IChatService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,27 +24,34 @@ public class ChatRestController {
     private final IChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @PostMapping(value = "/send", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping("/send")
     public ResponseEntity<APIResponse<MessageResponse>> sendMessage(
-            @RequestParam Long conversationId,
-            @RequestParam Long senderId,
-            @RequestParam(required = false) String content,
-            @RequestPart(required = false) List<MultipartFile> media
+            @RequestBody MessageRequest request
     ) {
-        MessageRequest request = MessageRequest.builder()
-                .conversationId(conversationId)
-                .senderId(senderId)
-                .content(content)
-                .media(media)
-                .build();
-
         APIResponse<MessageResponse> response = chatService.sendMessage(request);
 
-        messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, response.getData());
+        messagingTemplate.convertAndSend(
+                "/topic/conversation/" + request.getConversationId(),
+                response.getData()
+        );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping(value = "/send-media", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<APIResponse<MessageResponse>> sendMedia(
+            @ModelAttribute @Valid MessageMediaRequest request
+    ) {
+
+        APIResponse<MessageResponse> response = chatService.sendMedia(request);
+
+        messagingTemplate.convertAndSend(
+                "/topic/conversation/" + request.getConversationId(),
+                response.getData()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     @GetMapping("/conversation/{conversationId}")
     public ResponseEntity<APIResponse<List<MessageResponse>>> getMessagesByConversation(
@@ -69,8 +77,8 @@ public class ChatRestController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<APIResponse<List<MessageResponse>>> getMyMessages() {
-        APIResponse<List<MessageResponse>> response = chatService.getMyMessages();
+    public ResponseEntity<APIResponse<List<ConversationResponse>>> getMyConversation() {
+        APIResponse<List<ConversationResponse>> response = chatService.getMyConversations();
         return ResponseEntity.ok(response);
     }
 }
