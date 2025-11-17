@@ -282,7 +282,7 @@ public class PostServiceImpl implements IPostService{
 
     @Override
     @Transactional
-    public APIResponse<Void> togglePostReaction(Long postId) {
+    public APIResponse<PostResponse> togglePostReaction(Long postId) {
         CustomUserDetails currentUserDetails =
                 (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -292,15 +292,14 @@ public class PostServiceImpl implements IPostService{
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("Không tìm thấy bài đăng"));
 
-        Optional<PostReaction> existingReaction = postReactionRepository
-                .findByPostIdAndUserId(post.getId(), currentUser.getId());
+        Optional<PostReaction> existingReaction =
+                postReactionRepository.findByPostIdAndUserId(post.getId(), currentUser.getId());
+
+        boolean reacted;
 
         if (existingReaction.isPresent()) {
             postReactionRepository.delete(existingReaction.get());
-            return APIResponse.<Void>builder()
-                    .message("Đã bỏ reaction")
-                    .status(204)
-                    .build();
+            reacted = false;
         } else {
             PostReaction newReaction = PostReaction.builder()
                     .post(post)
@@ -308,13 +307,41 @@ public class PostServiceImpl implements IPostService{
                     .createdAt(LocalDateTime.now())
                     .build();
             postReactionRepository.save(newReaction);
-            return APIResponse.<Void>builder()
-                    .message("Đã thêm reaction")
-                    .status(201)
-                    .build();
+            reacted = true;
         }
-    }
 
+        long totalReactions = postReactionRepository.countReactionsByPostId(post.getId());
+        long totalComments = commentRepository.countCommentsByPostId(post.getId());
+        List<PostMediaResponse> mediaList = postmediaRepository.findByPost(post).stream()
+                .map(m -> PostMediaResponse.builder()
+                        .id(m.getId())
+                        .url(m.getUrl())
+                        .type(m.getType())
+                        .build())
+                .toList();
+
+        PostResponse response = PostResponse.builder()
+                .id(post.getId())
+                .content(post.getContent())
+                .createdAt(post.getCreatedAt())
+                .user(UserSummaryResponse.builder()
+                        .id(post.getUser().getId())
+                        .username(post.getUser().getUsername())
+                        .fullName(post.getUser().getFullName())
+                        .avatarUrl(post.getUser().getAvatarUrl())
+                        .build())
+                .mediaList(mediaList)
+                .totalReactions(totalReactions)
+                .totalComments(totalComments)
+                .reactedByCurrentUser(reacted)
+                .build();
+
+        return APIResponse.<PostResponse>builder()
+                .data(response)
+                .message(reacted ? "Đã thêm reaction" : "Đã bỏ reaction")
+                .status(reacted ? 201 : 204)
+                .build();
+    }
     @Override
     public APIResponse<PostResponse> getPostById(Long postId){
         CustomUserDetails currentUserDetails =

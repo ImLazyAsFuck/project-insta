@@ -2,9 +2,11 @@ import { useProfileQuery } from "@/hooks/useAccount";
 import {
   useMessagesQuery,
   useMyConversationsQuery,
-  useSendMessageMutation,
+  useReactMessageMutation,
   useSendMessageMediaMutation,
+  useSendMessageMutation,
 } from "@/hooks/useChat";
+import { EReactionType } from "@/types/reaction.enum";
 import { axiosInstance } from "@/utils/axios-instance";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -23,8 +25,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { EReactionType } from "@/types/reaction.enum";
-import { useReactMessageMutation } from "@/hooks/useChat";
 
 export default function ChatDetailUI() {
   const { data: profile } = useProfileQuery();
@@ -121,14 +121,25 @@ export default function ChatDetailUI() {
     messageId: number,
     type: EReactionType
   ) => {
-    if (!messageId || isReacting) return;
+    if (!messageId || isReacting || !profile?.data?.id) return;
+
+    const message = messagesRes?.data?.find((m) => m.id === messageId);
+    const myReaction = message?.reactions.find(
+      (r) => r.userId === profile.data.id
+    );
+
     try {
-      await reactMessage({ messageId, type });
+      // In 1-on-1 chats, a new reaction replaces the old one.
+      // Re-clicking the same reaction removes it.
+      if (myReaction?.type === type) {
+        await reactMessage({ messageId, type: myReaction.type, remove: true });
+      } else {
+        await reactMessage({ messageId, type });
+      }
     } finally {
       setActiveReactionMessageId(null);
     }
   };
-
 
   return (
     <SafeAreaView style={styles.container}>
@@ -201,9 +212,10 @@ export default function ChatDetailUI() {
             },
             {}
           );
-          const reactionEntries = Object.entries(
-            reactionGroups
-          ) as Array<[EReactionType, { count: number; mine: boolean }]>;
+          const reactionEntries = Object.entries(reactionGroups) as [
+            EReactionType,
+            { count: number; mine: boolean }
+          ][];
 
           return (
             <Pressable
@@ -221,134 +233,153 @@ export default function ChatDetailUI() {
               {!item.mine && item.avatar && (
                 <Image source={{ uri: item.avatar }} style={styles.avatar} />
               )}
-              {item.imageUrls?.length || item.text ? (
-                <View
-                  style={[
-                    styles.bubble,
-                    item.mine ? styles.bubbleMine : styles.bubbleTheirs,
-                    item.imageUrls?.length
-                      ? { padding: 0, backgroundColor: "transparent" }
-                      : null,
-                  ]}
-                >
-                  {item.imageUrls?.length ? (
-                    <View style={{ gap: 6 }}>
-                      {item.imageUrls.length === 1 ? (
-                        <Image
-                          source={{ uri: item.imageUrls[0] }}
-                          style={{ width: 220, height: 220, borderRadius: 12 }}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            flexWrap: "wrap",
-                            gap: 6,
-                            maxWidth: 240,
-                          }}
-                        >
-                          {item.imageUrls.map((url: string, idx: number) => (
-                            <Image
-                              key={`${item.id}_${idx}`}
-                              source={{ uri: url }}
-                              style={{
-                                width: 110,
-                                height: 110,
-                                borderRadius: 10,
-                              }}
-                              resizeMode="cover"
-                            />
-                          ))}
-                        </View>
-                      )}
-                      {!!item.text && (
-                        <View
-                          style={{
-                            alignSelf: "flex-start",
-                            backgroundColor: item.mine ? "#007AFF" : "#f0f0f0",
-                            borderRadius: 14,
-                            paddingHorizontal: 12,
-                            paddingVertical: 8,
-                            marginTop: 4,
-                            maxWidth: 240,
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.textMessage,
-                              item.mine ? styles.textMine : styles.textTheirs,
-                            ]}
+              <View
+                style={{
+                  position: "relative",
+                  flex: 1,
+                  alignItems: item.mine ? "flex-end" : "flex-start",
+                }}
+              >
+                {item.imageUrls?.length || item.text ? (
+                  <View
+                    style={[
+                      styles.bubble,
+                      item.mine ? styles.bubbleMine : styles.bubbleTheirs,
+                      { alignSelf: item.mine ? "flex-end" : "flex-start" },
+                      item.imageUrls?.length
+                        ? { padding: 0, backgroundColor: "transparent" }
+                        : null,
+                    ]}
+                  >
+                    {item.imageUrls?.length ? (
+                      <View style={{ gap: 6 }}>
+                        {item.imageUrls.length === 1 ? (
+                          <Image
+                            source={{ uri: item.imageUrls[0] }}
+                            style={{
+                              width: 220,
+                              height: 220,
+                              borderRadius: 12,
+                            }}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              flexWrap: "wrap",
+                              gap: 6,
+                              maxWidth: 240,
+                            }}
                           >
-                            {item.text}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  ) : (
-                    <Text
-                      style={[
-                        styles.textMessage,
-                        item.mine ? styles.textMine : styles.textTheirs,
-                      ]}
-                    >
-                      {item.text}
-                    </Text>
-                  )}
-                </View>
-              ) : null}
-              {activeReactionMessageId === item.id && (
-                <View
-                  style={[
-                    styles.reactionPicker,
-                    item.mine
-                      ? styles.reactionPickerMine
-                      : styles.reactionPickerTheirs,
-                  ]}
-                >
-                  {reactionOptions.map((reaction) => (
-                    <TouchableOpacity
-                      key={reaction.type}
-                      style={styles.reactionOption}
-                      onPress={() => handleSelectReaction(item.id, reaction.type)}
-                      disabled={isReacting}
-                    >
-                      <Text style={styles.reactionEmoji}>{reaction.emoji}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-              {item.reactions?.length ? (
-                <View
-                  style={[
-                    styles.reactionSummary,
-                    item.mine
-                      ? styles.reactionSummaryMine
-                      : styles.reactionSummaryTheirs,
-                  ]}
-                >
-                  {reactionEntries
-                    .sort((a, b) => b[1].count - a[1].count)
-                    .map(([type, { count, mine }]) => (
-                      <View
-                        key={`${item.id}_${type}`}
+                            {item.imageUrls.map((url: string, idx: number) => (
+                              <Image
+                                key={`${item.id}_${idx}`}
+                                source={{ uri: url }}
+                                style={{
+                                  width: 110,
+                                  height: 110,
+                                  borderRadius: 10,
+                                }}
+                                resizeMode="cover"
+                              />
+                            ))}
+                          </View>
+                        )}
+                        {!!item.text && (
+                          <View
+                            style={{
+                              alignSelf: "flex-start",
+                              backgroundColor: item.mine
+                                ? "#007AFF"
+                                : "#f0f0f0",
+                              borderRadius: 14,
+                              paddingHorizontal: 12,
+                              paddingVertical: 8,
+                              marginTop: 4,
+                              maxWidth: 240,
+                            }}
+                          >
+                            <Text
+                              style={[
+                                styles.textMessage,
+                                item.mine ? styles.textMine : styles.textTheirs,
+                              ]}
+                            >
+                              {item.text}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    ) : (
+                      <Text
                         style={[
-                          styles.reactionSummaryBadge,
-                          mine ? styles.reactionSummaryBadgeMine : null,
+                          styles.textMessage,
+                          item.mine ? styles.textMine : styles.textTheirs,
                         ]}
                       >
+                        {item.text}
+                      </Text>
+                    )}
+                  </View>
+                ) : null}
+
+                {activeReactionMessageId === item.id && (
+                  <View
+                    style={[
+                      styles.reactionPicker,
+                      item.mine
+                        ? styles.reactionPickerMine
+                        : styles.reactionPickerTheirs,
+                    ]}
+                  >
+                    {reactionOptions.map((reaction) => (
+                      <TouchableOpacity
+                        key={reaction.type}
+                        style={styles.reactionOption}
+                        onPress={() =>
+                          handleSelectReaction(item.id, reaction.type)
+                        }
+                        disabled={isReacting}
+                      >
                         <Text style={styles.reactionEmoji}>
-                          {
-                            reactionOptions.find(
-                              (option) => option.type === type
-                            )?.emoji || "❔"
-                          }
+                          {reaction.emoji}
                         </Text>
-                        <Text style={styles.reactionCount}>{count}</Text>
-                      </View>
+                      </TouchableOpacity>
                     ))}
-                </View>
-              ) : null}
+                  </View>
+                )}
+
+                {item.reactions?.length ? (
+                  <View
+                    style={[
+                      styles.reactionSummary,
+                      item.mine
+                        ? styles.reactionSummaryMine
+                        : styles.reactionSummaryTheirs,
+                    ]}
+                  >
+                    {reactionEntries
+                      .sort((a, b) => b[1].count - a[1].count)
+                      .map(([type, { count, mine }]) => (
+                        <View
+                          key={`${item.id}_${type}`}
+                          style={[
+                            styles.reactionSummaryBadge,
+                            mine ? styles.reactionSummaryBadgeMine : null,
+                          ]}
+                        >
+                          <Text style={styles.reactionEmoji}>
+                            {reactionOptions.find(
+                              (option) => option.type === type
+                            )?.emoji || "❔"}
+                          </Text>
+                          <Text style={styles.reactionCount}>{count}</Text>
+                        </View>
+                      ))}
+                  </View>
+                ) : null}
+              </View>
             </Pressable>
           );
         }}
@@ -433,6 +464,7 @@ const styles = StyleSheet.create({
   textTheirs: { color: "#000" },
 
   reactionPicker: {
+    position: "absolute",
     flexDirection: "row",
     backgroundColor: "#fff",
     paddingHorizontal: 10,
@@ -442,38 +474,30 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 3,
-    marginTop: 6,
     gap: 8,
+    zIndex: 10,
   },
-  reactionPickerMine: { alignSelf: "flex-end", marginRight: 4 },
-  reactionPickerTheirs: { alignSelf: "flex-start", marginLeft: 34 },
+  reactionPickerMine: { right: 10, top: -30 },
+  reactionPickerTheirs: { left: 40, top: -30 },
   reactionOption: { paddingHorizontal: 2 },
   reactionEmoji: { fontSize: 18 },
 
   reactionSummary: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    backgroundColor: "transparent",
     marginTop: 4,
-    gap: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
   },
-  reactionSummaryMine: { alignSelf: "flex-end", marginRight: 4 },
-  reactionSummaryTheirs: { alignSelf: "flex-start", marginLeft: 36 },
+  reactionSummaryMine: { alignSelf: "flex-end", marginRight: 10 },
+  reactionSummaryTheirs: { alignSelf: "flex-start" },
   reactionSummaryBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 2,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 12,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "transparent",
   },
   reactionSummaryBadgeMine: { backgroundColor: "#dbe8ff" },
   reactionCount: { fontSize: 12, color: "#333", fontWeight: "600" },

@@ -52,8 +52,8 @@ public class PostController{
     }
 
     @PostMapping("/{postId}/reaction")
-    public ResponseEntity<APIResponse<Void>> toggleReaction(@PathVariable Long postId) {
-        APIResponse<Void> response = postService.togglePostReaction(postId);
+    public ResponseEntity<APIResponse<PostResponse>> toggleReaction(@PathVariable Long postId) {
+        APIResponse<PostResponse> response = postService.togglePostReaction(postId);
         return ResponseEntity.ok(response);
     }
 

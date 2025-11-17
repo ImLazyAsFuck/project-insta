@@ -10,5 +10,5 @@ public interface ICommentService{
     APIResponse<List<CommentResponse>> getCommentsByPostId(Long postId);
     APIResponse<CommentResponse> createComment(CommentRequest commentRequest);
     APIResponse<Void> deleteComment(Long commentId);
-    APIResponse<Void> toggleCommentReaction(Long commentId);
+    APIResponse<CommentResponse> toggleCommentReaction(Long commentId);
 }

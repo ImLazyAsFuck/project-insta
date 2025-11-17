@@ -13,6 +13,6 @@ public interface IPostService{
     APIResponse<List<PostResponse>> getOwnPosts();
     APIResponse<List<PostResponse>> getOtherPosts(long userId);
     APIResponse<PostResponse> changePostVisibility(Long postId, EVisibility visibility);
-    APIResponse<Void> togglePostReaction(Long postId);
+    APIResponse<PostResponse> togglePostReaction(Long postId);
     APIResponse<PostResponse> getPostById(Long postId);
 }

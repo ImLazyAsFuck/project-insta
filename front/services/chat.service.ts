@@ -85,10 +85,14 @@ export const deleteMessage = async (
 
 export const reactMessage = async (
   messageId: number,
-  type: EReactionType
+  type: EReactionType,
+  remove?: boolean
 ): Promise<SingleResponse<MessageResponse>> => {
   try {
-    const res = await axiosInstance.post("/chat/react", { messageId, type });
+    const url = `/chat/react?messageId=${messageId}&type=${type}${
+      remove ? "&remove=true" : ""
+    }`;
+    const res = await axiosInstance.post(url);
 
     if (!res.data || !res.data.data) {
       throw {

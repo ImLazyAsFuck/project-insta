@@ -129,7 +129,7 @@ public class CommentServiceImpl implements ICommentService{
     }
 
     @Override
-    public APIResponse<Void> toggleCommentReaction(Long commentId){
+    public APIResponse<CommentResponse> toggleCommentReaction(Long commentId) {
         CustomUserDetails currentUserDetails =
                 (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -147,22 +147,61 @@ public class CommentServiceImpl implements ICommentService{
             commentReactionRepository.delete(existingReaction.get());
             comment.getReactions().remove(existingReaction.get());
         } else {
-            CommentReaction reaction = CommentReaction.builder()
+            CommentReaction newReaction = CommentReaction.builder()
                     .comment(comment)
                     .user(currentUser)
                     .createdAt(LocalDateTime.now())
                     .build();
 
-            commentReactionRepository.save(reaction);
-            comment.getReactions().add(reaction);
+            commentReactionRepository.save(newReaction);
+            comment.getReactions().add(newReaction);
         }
 
-        return APIResponse.<Void>builder()
-                .data(null)
+        commentRepository.save(comment);
+
+        CommentResponse updatedResponse = CommentResponse.builder()
+                .id(comment.getId())
+                .content(comment.getContent())
+                .user(UserSummaryResponse.builder()
+                        .id(comment.getUser().getId())
+                        .username(comment.getUser().getUsername())
+                        .fullName(comment.getUser().getFullName())
+                        .avatarUrl(comment.getUser().getAvatarUrl())
+                        .build())
+                .reactionCount(comment.getReactions().size())
+                .reactedByCurrentUser(
+                        comment.getReactions().stream()
+                                .anyMatch(r -> r.getUser().getId().equals(currentUser.getId()))
+                )
+                .replyToUsername(
+                        comment.getParentComment() != null ? comment.getParentComment().getUser().getUsername() : null
+                )
+                .parentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null)
+                .createdAt(comment.getCreatedAt())
+                .childComments(
+                        comment.getChildComments().stream()
+                                .map(child -> CommentResponse.builder()
+                                        .id(child.getId())
+                                        .content(child.getContent())
+                                        .user(UserSummaryResponse.builder()
+                                                .id(child.getUser().getId())
+                                                .username(child.getUser().getUsername())
+                                                .fullName(child.getUser().getFullName())
+                                                .avatarUrl(child.getUser().getAvatarUrl())
+                                                .build())
+                                        .reactionCount(child.getReactions().size())
+                                        .reactedByCurrentUser(child.getReactions().stream()
+                                                .anyMatch(r -> r.getUser().getId().equals(currentUser.getId())))
+                                        .createdAt(child.getCreatedAt())
+                                        .build())
+                                .toList()
+                )
+                .build();
+
+        return APIResponse.<CommentResponse>builder()
+                .data(updatedResponse)
                 .status(200)
                 .message("Toggle reaction thành công")
                 .build();
     }
-
-
 }

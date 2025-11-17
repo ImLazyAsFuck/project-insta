@@ -2,7 +2,6 @@ import UnfollowModal from "@/components/UnfollowModal";
 import { useBlockUserMutation } from "@/hooks/useBlock";
 import {
   useFollowStatusQuery,
-  useRemoveFollowMutation,
   useSendFollowRequestMutation,
 } from "@/hooks/useFollow";
 import { useOtherProfileQuery } from "@/hooks/useUser";
@@ -12,17 +11,159 @@ import React from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Dimensions,
   FlatList,
   Image,
   Modal,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
-  Animated,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const posts = [
+  {
+    id: 1,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 2,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 3,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 4,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 5,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 6,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 7,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 8,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 9,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 10,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 11,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 12,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 13,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 14,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 15,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 16,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 17,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 18,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 19,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 20,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 21,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 22,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 23,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 24,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 25,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 10,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 10,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+  {
+    id: 10,
+    imageUrl:
+      "https://images.pexels.com/photos/1172064/pexels-photo-1172064.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+  },
+];
 
 const { width } = Dimensions.get("window");
 
@@ -126,12 +267,16 @@ export default function OtherProfileScreen() {
 
       {/* Nội dung */}
       {isLoading ? (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
           <ActivityIndicator />
         </View>
       ) : (
-        <ScrollView style={{ flex: 1 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", padding: 20 }}>
+        <View style={{ flex: 1 }}>
+          <View
+            style={{ flexDirection: "row", alignItems: "center", padding: 20 }}
+          >
             <Image
               source={{
                 uri: profile?.avatarUrl || "https://placehold.co/120x120",
@@ -238,7 +383,7 @@ export default function OtherProfileScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                  onPress={() => router.push("/message")}
+                    onPress={() => router.push("/message")}
                     style={{
                       flex: 1,
                       borderWidth: 1,
@@ -264,23 +409,22 @@ export default function OtherProfileScreen() {
               marginTop: 20,
               paddingTop: 10,
             }}
-          >
-            <Ionicons name="grid-outline" size={28} />
-            <Ionicons name="person-outline" size={28} />
-          </View>
+          ></View>
 
           <FlatList
-            data={[]}
-            keyExtractor={(_, index) => String(index)}
+            data={posts}
+            keyExtractor={(item) => item.id.toString()}
             numColumns={3}
-            renderItem={() => null}
+            renderItem={({ item }) => (
+              <Image width={150} height={150} src={item.imageUrl} />
+            )}
             ListEmptyComponent={() => (
               <View style={{ padding: 40, alignItems: "center" }}>
                 <Text>No posts yet</Text>
               </View>
             )}
           />
-        </ScrollView>
+        </View>
       )}
 
       {/* Modal Unfollow */}
@@ -310,7 +454,9 @@ export default function OtherProfileScreen() {
               transform: [{ translateX: slideAnim }],
             }}
           >
-            <Text style={{ fontWeight: "bold", fontSize: 16, marginBottom: 10 }}>
+            <Text
+              style={{ fontWeight: "bold", fontSize: 16, marginBottom: 10 }}
+            >
               Tuỳ chọn
             </Text>
             <TouchableOpacity
@@ -323,7 +469,9 @@ export default function OtherProfileScreen() {
                 borderColor: "#eee",
               }}
             >
-              <Text style={{ color: "red", fontWeight: "600" }}>Chặn người này</Text>
+              <Text style={{ color: "red", fontWeight: "600" }}>
+                Chặn người này
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setMenuVisible(false)}
@@ -359,7 +507,9 @@ export default function OtherProfileScreen() {
               alignItems: "center",
             }}
           >
-            <Text style={{ fontWeight: "bold", fontSize: 16, marginBottom: 10 }}>
+            <Text
+              style={{ fontWeight: "bold", fontSize: 16, marginBottom: 10 }}
+            >
               Bạn có chắc muốn chặn {profile?.username}?
             </Text>
             <TouchableOpacity

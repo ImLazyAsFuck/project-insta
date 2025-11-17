@@ -43,6 +43,7 @@ export const CommentModal = ({
   const [replyingTo, setReplyingTo] = useState<{
     commentId: number;
     username: string;
+    rootCommentId: number;
   } | null>(null);
   const inputRef = useRef<TextInput>(null);
 
@@ -109,15 +110,20 @@ export const CommentModal = ({
     return roots;
   }, [data]);
 
-  const handleAddComment = (parentId?: number | null) => {
+  const handleAddComment = () => {
     if (!newComment.trim() || !currentUser) return;
+    const parentId = replyingTo ? replyingTo.rootCommentId : null;
     createComment.mutate({ content: newComment, postId, parentId });
     setNewComment("");
     setReplyingTo(null);
   };
 
-  const handleReplyClick = (commentId: number, username: string) => {
-    setReplyingTo({ commentId, username });
+  const handleReplyClick = (
+    commentId: number,
+    username: string,
+    rootCommentId: number
+  ) => {
+    setReplyingTo({ commentId, username, rootCommentId });
     // Focus the input after a short delay to ensure the modal is ready
     setTimeout(() => {
       inputRef.current?.focus();
@@ -143,7 +149,7 @@ export const CommentModal = ({
     );
   };
 
-  const renderReply = (reply: CommentResponse) => (
+  const renderReply = (reply: CommentResponse, rootCommentId: number) => (
     <View key={reply.id} style={styles.replyItem}>
       <Image
         source={{ uri: reply.user.avatarUrl }}
@@ -171,7 +177,11 @@ export const CommentModal = ({
             />
             <Text style={styles.reactionCount}>{reply.reactionCount}</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleReplyClick(reply.id, reply.user.username)}>
+          <TouchableOpacity
+            onPress={() =>
+              handleReplyClick(reply.id, reply.user.username, rootCommentId)
+            }
+          >
             <Text style={styles.replyText}>Trả lời</Text>
           </TouchableOpacity>
           {reply.user.username === currentUser?.username && (
@@ -216,7 +226,9 @@ export const CommentModal = ({
               />
               <Text style={styles.reactionCount}>{item.reactionCount}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleReplyClick(item.id, item.user.username)}>
+            <TouchableOpacity
+              onPress={() => handleReplyClick(item.id, item.user.username, item.id)}
+            >
               <Text style={styles.replyText}>Trả lời</Text>
             </TouchableOpacity>
             {item.user.username === currentUser?.username && (
@@ -231,7 +243,7 @@ export const CommentModal = ({
           </View>
 
           {/* Render replies */}
-          {item.childComments?.map((reply) => renderReply(reply))}
+          {item.childComments?.map((reply) => renderReply(reply, item.id))}
         </View>
       </View>
     );
@@ -295,7 +307,7 @@ export const CommentModal = ({
                   onChangeText={setNewComment}
                 />
               </View>
-              <TouchableOpacity onPress={() => handleAddComment(replyingTo?.commentId)}>
+              <TouchableOpacity onPress={handleAddComment}>
                 <Feather name="send" size={24} color="#007AFF" />
               </TouchableOpacity>
             </View>
@@ -330,7 +342,7 @@ const styles = StyleSheet.create({
   replyItem: {
     flexDirection: "row",
     paddingVertical: 8,
-    paddingLeft: 50,
+    paddingLeft: 10,
     paddingRight: 10,
     alignItems: "flex-start",
     marginTop: 4,

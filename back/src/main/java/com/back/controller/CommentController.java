@@ -41,8 +41,8 @@ public class CommentController{
     }
 
     @PostMapping("/{commentId}/reaction")
-    public ResponseEntity<APIResponse<Void>> toggleCommentReaction(@PathVariable Long commentId) {
-        APIResponse<Void> response = commentService.toggleCommentReaction(commentId);
+    public ResponseEntity<APIResponse<CommentResponse>> toggleCommentReaction(@PathVariable Long commentId) {
+        APIResponse<CommentResponse> response = commentService.toggleCommentReaction(commentId);
         return ResponseEntity.ok(response);
     }
 }

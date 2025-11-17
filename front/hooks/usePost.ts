@@ -7,7 +7,10 @@ import {
   fetchFeeds,
   fetchOtherPosts,
   fetchPostDetail,
+  updatePostVisibility,
+  deletePost,
 } from "@/services/post.service";
+import { EVisibility } from "@/types/visibility.enum";
 import { BaseResponse, SingleResponse } from "@/utils/response-data";
 
 export const POST_KEY = ["posts"];
@@ -84,5 +87,16 @@ export const usePostDetailQuery = (postId: number) => {
     queryKey: [...POST_KEY, "post", postId],
     queryFn: () => fetchPostDetail(postId),
     enabled: !!postId,
+  });
+};
+
+export const useDeletePostMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<SingleResponse<void>, unknown, { postId: number }>({
+    mutationFn: ({ postId }) => deletePost(postId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...POST_KEY] });
+    },
   });
 };

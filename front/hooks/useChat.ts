@@ -90,9 +90,10 @@ export const useReactMessageMutation = () => {
   return useMutation<
     SingleResponse<MessageResponse>,
     Error,
-    { messageId: number; type: EReactionType }
+    { messageId: number; type: EReactionType; remove?: boolean }
   >({
-    mutationFn: ({ messageId, type }) => reactMessage(messageId, type),
+    mutationFn: ({ messageId, type, remove }) =>
+      reactMessage(messageId, type, remove),
     onSuccess: (data) => {
       if (data.data?.conversationId) {
         queryClient.invalidateQueries({

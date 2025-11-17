@@ -33,6 +33,26 @@ export const createPost = async (
   }
 };
 
+export const deletePost = async (
+  postId: number
+): Promise<SingleResponse<void>> => {
+  try {
+    const res = await axiosInstance.delete(`/posts/${postId}`);
+
+    if (res.status !== 200) {
+      throw {
+        message: res.data.message,
+        error: res.data.error,
+        status: res.data.status,
+      };
+    }
+
+    return res.data;
+  } catch (error) {
+    throw handleAxiosError(error);
+  }
+};
+
 export const togglePostReaction = async (
   postId: number
 ): Promise<SingleResponse<void>> => {

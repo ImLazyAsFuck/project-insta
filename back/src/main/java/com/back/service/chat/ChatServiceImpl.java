@@ -170,24 +170,45 @@ public class ChatServiceImpl implements IChatService {
     }
 
     @Override
-    public APIResponse<MessageResponse> reactMessage(Long messageId, EReactionType type){
+    @Transactional
+    public APIResponse<MessageResponse> reactMessage(Long messageId, EReactionType type) {
         CustomUserDetails currentUserDetails = (CustomUserDetails) SecurityContextHolder
-                .getContext().getAuthentication()
+                .getContext()
+                .getAuthentication()
                 .getPrincipal();
+
         User user = userRepository.findById(currentUserDetails.getId())
                 .orElseThrow(() -> new NoSuchElementException("Không tìm thấy người dùng"));
 
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new NoSuchElementException("Không tìm thấy tin nhắn"));
 
-        MessageReaction reaction = MessageReaction.builder()
-                .message(message)
-                .user(user)
-                .type(type)
-                .createdAt(LocalDateTime.now())
-                .build();
+        Optional<MessageReaction> existingReactionOpt =
+                reactionRepository.findByMessageAndUser(message, user);
 
-        reactionRepository.save(reaction);
+        if (existingReactionOpt.isPresent()) {
+            MessageReaction existingReaction = existingReactionOpt.get();
+
+            if (existingReaction.getType() == type) {
+                reactionRepository.delete(existingReaction);
+            } else {
+                existingReaction.setType(type);
+                existingReaction.setCreatedAt(LocalDateTime.now());
+                reactionRepository.save(existingReaction);
+            }
+        } else {
+            MessageReaction newReaction = MessageReaction.builder()
+                    .message(message)
+                    .user(user)
+                    .type(type)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            reactionRepository.save(newReaction);
+        }
+
+        message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy tin nhắn"));
+
         MessageResponse messageResponse = MessageResponse.builder()
                 .id(message.getId())
                 .content(message.getContent())
@@ -199,22 +220,26 @@ public class ChatServiceImpl implements IChatService {
                         .fullName(message.getSender().getFullName())
                         .avatarUrl(message.getSender().getAvatarUrl())
                         .build())
-                .mediaUrls(message.getMediaList() != null ? message.getMediaList().stream().map(MessageMedia::getUrl).toList() : List.of())
-                .reactions(message.getReactions() != null ? message.getReactions().stream().map(r ->
+                .mediaUrls(message.getMediaList() != null
+                        ? message.getMediaList().stream().map(MessageMedia::getUrl).toList()
+                        : List.of())
+                .reactions(message.getReactions() != null
+                        ? message.getReactions().stream().map(r ->
                         MessageReactionResponse.builder()
                                 .id(r.getId())
                                 .userId(r.getUser().getId())
                                 .username(r.getUser().getUsername())
                                 .type(r.getType())
-                                .build()).toList() : List.of())
+                                .build()).toList()
+                        : List.of())
                 .build();
 
-
         return APIResponse.<MessageResponse>builder()
-                .message("Thả reaction thành công")
+                .message("Cập nhật reaction thành công")
                 .data(messageResponse)
                 .build();
     }
+
 
     @Override
     public APIResponse<List<ConversationResponse>> getMyConversations(){
